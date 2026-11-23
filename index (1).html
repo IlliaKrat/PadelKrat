@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>PadelKrat Schedule</title><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f3f6fa;--surface:#fff;--ink:#0f1b2d;--muted:#5d6b80;--line:#dde4ee;--line2:#eef2f7;
+  --accent:#0a6f94;--accent-ink:#fff;--danger:#b42318;
+  --one:#a4c2f4;--one-ink:#0b2a5c;
+  --xiri:#6fe3f0;--xiri-ink:#053a41;
+  --urb:#3c78d8;--urb-ink:#fff;
+  --upv:#ea9999;--upv-ink:#4a1212;
+  --ent:#7e57c2;--ent-ink:#fff;
+  --occ:#d9d9d9;--occ-ink:#555;
+  --free:#e4f5e6;--free-line:#8fcf93;--free-ink:#1d5a27;
+  --pend:#ffe9a8;--pend-ink:#5c4300;
+  --pq1:#ffa726;--pq2:#fff0d6;--pq-ink:#5a2d00;--pq-line:#e65100;
+  --mine:#0a6f94;
+  --shadow:0 6px 24px rgba(15,27,45,.16);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0c131d;--surface:#141d2a;--ink:#e8eef7;--muted:#97a6bb;--line:#26344a;--line2:#1c2838;
+  --accent:#4cc3e6;--accent-ink:#06222c;--danger:#ff8a80;
+  --one:#6f95d6;--one-ink:#06152f;--xiri:#34b9c7;--xiri-ink:#021f23;--urb:#3c78d8;--urb-ink:#fff;
+  --upv:#b86b6b;--upv-ink:#fff;--ent:#8a67cf;--ent-ink:#fff;--occ:#3a414c;--occ-ink:#aab2bf;
+  --free:#16301c;--free-line:#3f8a4a;--free-ink:#9be3a6;--pend:#5c4a12;--pend-ink:#ffe9a8;--mine:#4cc3e6;
+  --pq1:#c26a00;--pq2:#3d2a10;--pq-ink:#ffe0b2;--pq-line:#ffb74d;
+  --shadow:0 6px 24px rgba(0,0,0,.5);color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c131d;--surface:#141d2a;--ink:#e8eef7;--muted:#97a6bb;--line:#26344a;--line2:#1c2838;
+  --accent:#4cc3e6;--accent-ink:#06222c;--danger:#ff8a80;
+  --one:#6f95d6;--one-ink:#06152f;--xiri:#34b9c7;--xiri-ink:#021f23;--urb:#3c78d8;--urb-ink:#fff;
+  --upv:#b86b6b;--upv-ink:#fff;--ent:#8a67cf;--ent-ink:#fff;--occ:#3a414c;--occ-ink:#aab2bf;
+  --free:#16301c;--free-line:#3f8a4a;--free-ink:#9be3a6;--pend:#5c4a12;--pend-ink:#ffe9a8;--mine:#4cc3e6;
+  --pq1:#c26a00;--pq2:#3d2a10;--pq-ink:#ffe0b2;--pq-line:#ffb74d;
+  --shadow:0 6px 24px rgba(0,0,0,.5);color-scheme:dark}
+*{box-sizing:border-box}
+html{height:100%}
+body{height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden;margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;font-size:14px;
+  padding-inline:max(0px,env(safe-area-inset-left,0px)) max(0px,env(safe-area-inset-right,0px))}
+button,select,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+h1,h2,h3{font-family:"Space Grotesk",Inter,sans-serif;margin:0}
+.bar{flex:none;z-index:20;background:var(--surface);border-bottom:1px solid var(--line);
+  padding:8px max(12px,env(safe-area-inset-right,0px)) 8px max(12px,env(safe-area-inset-left,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--surface)}
+.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.row+.row{margin-top:8px}
+.grow{flex:1;min-width:0}
+.title{font-size:17px;font-weight:700;letter-spacing:-.01em}
+.sub{color:var(--muted);font-size:12px}
+.seg{display:inline-flex;background:var(--line2);border-radius:10px;padding:2px}
+.seg button{border:0;background:none;padding:6px 12px;border-radius:8px;font-weight:500;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:7px 11px;font-weight:500}
+.btn.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.dng{color:var(--danger);border-color:var(--danger)}
+.btn.sm{padding:4px 9px;font-size:13px}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn:focus-visible,.seg button:focus-visible,.chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.badge{display:inline-block;min-width:18px;padding:0 5px;border-radius:9px;background:#e5484d;color:#fff;font-size:11px;font-weight:700;line-height:18px;text-align:center;margin-left:4px}
+.legend{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.legend::-webkit-scrollbar{display:none}
+.lg{flex:none;display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--muted)}
+.lg i{width:12px;height:12px;border-radius:3px;display:inline-block;border:1px solid rgba(0,0,0,.12)}
+.notice{margin:8px 12px;padding:8px 12px;border-radius:10px;background:var(--pend);color:var(--pend-ink);font-size:13px}
+/* grid */
+#main{flex:1;min-height:0;overflow:auto;position:relative}
+#note{flex:none}
+.scroller{overflow-x:hidden;overflow-y:auto;height:100%;position:relative;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.wk{display:grid;grid-template-columns:28px repeat(var(--n),minmax(0,1fr));width:100%}
+.wk .hd{position:sticky;top:0;z-index:6;background:var(--surface);border-bottom:1px solid var(--line);border-left:1px solid var(--line2);
+  text-align:center;padding:4px 0;font-size:10px;color:var(--muted);line-height:1.2;cursor:pointer}
+.wk .hd b{display:block;font-size:14px;color:var(--ink);font-family:"Space Grotesk",sans-serif}
+.wk .hd.today b{color:var(--accent-ink);background:var(--accent);border-radius:12px;display:inline-block;padding:0 8px}
+.wk .corner{position:sticky;left:0;top:0;z-index:8;background:var(--surface);border-bottom:1px solid var(--line)}
+.tm{position:sticky;left:0;z-index:5;background:var(--surface);height:calc(var(--h)*28);position:sticky}
+.tm span{position:absolute;right:2px;font-size:9px;color:var(--muted);transform:translateY(-50%)}
+.col{position:relative;height:calc(var(--h)*28);border-left:1px solid var(--line2);
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(var(--line2) 1px,transparent 1px);
+  background-size:100% calc(var(--h)*2),100% var(--h);background-color:var(--surface)}
+.col.past{background-color:var(--bg)}
+.free{position:absolute;left:1px;right:1px;border-radius:6px;background:var(--free);border:1px dashed var(--free-line);color:var(--free-ink);
+  font-size:10.5px;display:flex;align-items:center;justify-content:center;text-align:center;cursor:pointer;overflow:hidden;z-index:1}
+.free{flex-direction:column;line-height:1.2}
+.free *{pointer-events:none}
+.free b{font-size:10.5px;font-weight:600}
+.free span{font-size:9px;opacity:.85}
+.free:hover{filter:brightness(.97);border-style:solid}
+.ev{position:absolute;left:0;right:0;border-radius:4px;padding:1px 1px 1px 2px;overflow:hidden;font-size:9.5px;line-height:1.1;cursor:pointer;z-index:2;
+  border:1px solid rgba(0,0,0,.14);text-align:left}
+.ev b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev b.nm{display:flex;align-items:center;gap:2px;overflow:visible}
+.ev b.nm i{font-style:normal;white-space:nowrap}
+.ev b.nm .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.ev b.nm .bd{flex:none;padding:0 2px;border-radius:3px;background:rgba(255,255,255,.7);color:#1a1a1a;font-size:9px;line-height:11px;font-weight:700}
+.ev span.tr{font-size:8px;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
+@media(max-width:375px){.ev span.tr{font-size:7.2px;letter-spacing:-.6px}}
+.ev span{display:block;opacity:.85;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev.one{background:var(--one);color:var(--one-ink)}
+.ev.xiri{background:var(--xiri);color:var(--xiri-ink)}
+.ev.urb{background:var(--urb);color:var(--urb-ink)}
+.ev.upv{background:var(--upv);color:var(--upv-ink)}
+.ev.entreno{background:var(--ent);color:var(--ent-ink)}
+.ev.ocupado{background:var(--occ);color:var(--occ-ink)}
+.ev.nop{background:var(--occ);color:var(--occ-ink)}
+.ev.acc{border:1px dashed var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.ev.pistaok{background:var(--free);color:var(--free-ink);border:2px solid var(--one)}
+.ev.pistaok b,.ev.pistaok span{white-space:normal;overflow:visible;text-align:center}
+.ev.pistaok{text-align:center;z-index:4;box-shadow:0 1px 4px rgba(0,0,0,.25)}
+.ev.pistaok.half{left:50%}
+.ev.canc{border:1px dashed var(--danger);box-shadow:inset 0 0 0 2px rgba(229,72,77,.35)}
+.ev.pend{background:repeating-linear-gradient(45deg,var(--pq1),var(--pq1) 7px,var(--pq2) 7px,var(--pq2) 14px);color:var(--pq-ink);border:2px dashed var(--pq-line)}
+.ev.pend b{text-shadow:0 0 3px var(--pq2),0 0 3px var(--pq2)}
+.ev.mine{outline:2px solid var(--mine);outline-offset:-1px;z-index:3}
+.nowline{position:absolute;left:0;right:0;height:2px;background:#e5484d;z-index:4;pointer-events:none}
+.nowline::before{content:"";position:absolute;left:-3px;top:-3px;width:8px;height:8px;border-radius:50%;background:#e5484d}
+/* month */
+.mo{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:8px 12px}
+.mo .dn{text-align:center;font-size:11px;color:var(--muted);padding:2px 0}
+.mc{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:3px;cursor:pointer;min-width:0;text-align:left}
+.mc.out{opacity:.4}
+.mc.today{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.mc b{font-size:12px;font-family:"Space Grotesk",sans-serif}
+.mchip{font-size:9px;line-height:1.35;border-radius:3px;padding:0 3px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border:1px solid rgba(0,0,0,.1)}
+.mchip.one{background:var(--one);color:var(--one-ink)}.mchip.xiri{background:var(--xiri);color:var(--xiri-ink)}.mchip.urb{background:var(--urb);color:var(--urb-ink)}.mchip.upv{background:var(--upv);color:var(--upv-ink)}.mchip.entreno{background:var(--ent);color:var(--ent-ink)}.mchip.other{background:var(--occ);color:var(--occ-ink)}.mchip.pend{background:var(--pq1);color:var(--pq-ink);border:1px dashed var(--pq-line)}
+.mfree{margin-top:2px;font-size:9px;color:var(--free-ink);background:var(--free);border-radius:3px;padding:0 3px;text-align:center}
+.mc{min-height:92px}
+.strip{display:grid;grid-template-rows:repeat(28,1fr);height:var(--sh,64px);margin-top:3px;border-radius:4px;overflow:hidden;background:var(--line2)}
+.strip i{display:block}
+.s-free{background:var(--free)}.s-one{background:var(--one)}.s-xiri{background:var(--xiri)}.s-urb{background:var(--urb)}
+.s-upv{background:var(--upv)}.s-entreno{background:var(--ent)}.s-ocupado,.s-nop{background:var(--occ)}.s-pend{background:var(--pq1)}.s-none{background:transparent}
+.sum{padding:4px 12px 90px}
+.mo{padding-bottom:4px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:10px}
+.card h3{font-size:14px;margin-bottom:6px}
+table{border-collapse:collapse;width:100%}
+td,th{padding:5px 4px;text-align:left;border-bottom:1px solid var(--line2);font-size:13px}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+/* sheets */
+.ov{position:fixed;inset:0;background:rgba(5,12,22,.5);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--surface);width:100%;max-width:520px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;box-shadow:var(--shadow);
+  padding:16px max(16px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+@media(min-width:600px){.ov{align-items:center}.sheet{border-radius:18px}}
+.sheet h2{font-size:18px;margin-bottom:10px}
+.f{margin-top:10px}
+.f label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+.sheet{overflow-x:hidden}
+.f input,.f select,.f textarea{min-width:0;max-width:100%;box-sizing:border-box;width:100%;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:9px 10px}
+.f input[type=date]{-webkit-appearance:none;appearance:none;display:block;min-height:40px}
+@media(pointer:coarse){input,select,textarea{font-size:16px!important}}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:6px 12px;font-size:13px}
+.chip[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.chip[disabled]{opacity:.4;cursor:not-allowed}
+.acts{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+.acts .grow{flex:1}
+.fab{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:15;border:0;border-radius:999px;
+  background:var(--accent);color:var(--accent-ink);padding:13px 20px;font-weight:600;box-shadow:var(--shadow)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(80px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;z-index:60;max-width:90vw;font-size:13px}
+.item{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line2)}
+.item:last-child{border:0}
+.st{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;background:var(--line2);color:var(--muted)}
+.st.ok{background:var(--free);color:var(--free-ink)}.st.wait{background:var(--pend);color:var(--pend-ink)}
+@keyframes slideL{from{transform:translateX(40px);opacity:.3}to{transform:none;opacity:1}}
+@keyframes slideR{from{transform:translateX(-40px);opacity:.3}to{transform:none;opacity:1}}
+.zoom{display:inline-flex;gap:4px;align-items:center}
+.ov.pkov{align-items:flex-start;background:rgba(5,12,22,.25);padding-top:calc(env(safe-area-inset-top,0px) + 70px)}
+.pk{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:12px;width:min(330px,calc(100vw - 24px));margin:0 auto}
+.pk-g{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.pk-d{text-align:center;font-size:11px;color:var(--muted);padding:2px 0}
+.pk-c{border:0;background:var(--bg);border-radius:8px;padding:9px 0;font-weight:500}
+.pk-c.out{opacity:.4}.pk-c.today{box-shadow:inset 0 0 0 2px var(--accent)}
+.pk-c.sel{background:var(--accent);color:var(--accent-ink)}
+</style>
+</head><body>
+
+<script>var API_URL="https://script.google.com/macros/s/AKfycbw6Y7yBjny6MNeNL-7rLCU7DMM7jBmnk81mnk0HODdXGMR9uObNiHW4cd1sFvZWEnWo5A/exec";var WANT_OWNER=/[?&]entrenador/.test(location.search);var PIN_URL="";</script>
+<div class="bar" id="bar"></div>
+<div id="note"></div>
+<main id="main"></main>
+<div id="layer"></div>
+<div id="toast" hidden></div>
+
+<script>
+(function(){
+"use strict";
+var I18N={"es": {"Court (busy)": "Pista (ocupada)", "Court, no lesson": "Pista sin clase", "Your request": "Tu solicitud", "Request": "Solicitud", "Pending": "Pendiente", "⚠ cancel court ": "⚠ cancelar pista ", "Your lesson": "Tu clase", "Court booked": "Pista reservada", "⚠ cancel court": "⚠ cancelar pista", "⚠ court still to book": "⚠ falta reservar pista", "⚠ no court no.": "⚠ sin nº de pista", "Urbanization": "Urbanizaciones", "No database: changes made here are not saved when you close.": "Sin base de datos: lo que cambies aquí no se guarda al cerrar.", "Loading schedule…": "Cargando agenda…", "Could not refresh. Retrying…": "No se pudo actualizar. Reintentando…", "Lesson schedule": "Agenda de clases", "Coach view": "Vista de entrenador", "Tap a green slot and send your request": "Toca un hueco verde y envía tu solicitud", "Requests": "Solicitudes", "Exit coach mode": "Salir del modo entrenador", "Coach mode ✕": "Modo entrenador ✕", "Previous week": "Semana anterior", "Today": "Hoy", "Next week": "Semana siguiente", "Zoom out": "Reducir", "Zoom in": "Ampliar", "Fit": "Ajustar", "Free": "Libre", "Previous month": "Mes anterior", "Next month": "Mes siguiente", "Hours in ": "Horas de ", "Hours this month": "Horas del mes", "Free · ": "Libre · ", " more": " más", "Lesson, no place": "Clase sin sitio", "Hours this month · ": "Horas del mes · ", "Lessons per student": "Clases por alumno", "+ New": "+ Nueva", "That slot is no longer free": "Ese hueco ya no está libre", "Your name": "Tu nombre", "No preference": "Me da igual", "Optional: level, who you come with…": "Opcional: nivel, con quién vienes…", "Enter your name": "Escribe tu nombre", "Send request": "Enviar solicitud", "Request a lesson": "Pedir clase", ". I will confirm the time": ". Yo confirmo la hora", " (the court is already booked)": " (la pista ya está reservada)", " and then book the court": " y después reservo la pista", "Name": "Nombre", "Start time": "Hora de inicio", "Duration": "Duración", "Where (if you have a preference)": "Dónde (si tienes preferencia)", "Note": "Nota", "Cancel": "Cancelar", "To accept (": "Por aceptar (", "No pending requests.": "No hay solicitudes pendientes.", "No name": "Sin nombre", "Prefers ": "Prefiere ", "No place preference": "Sin preferencia de sitio", "Accept": "Aceptar", "Reject": "Rechazar", "Court still to book (": "Falta reservar la pista (", "No courts to book.": "Nada pendiente de pista.", "Court": "Pista", "Court confirmed": "Pista confirmada", "Court booked ✓": "Pista reservada ✓", "Courts to cancel (": "Pistas por cancelar (", "None. Choose “Cancel court” when editing a lesson or court.": "Ninguna. Marca «Cancelar pista» al editar una clase o pista.", " · court ": " · pista ", "Court cancelled": "Pista cancelada", "Already cancelled ✓": "Ya cancelada ✓", "Close": "Cerrar", "Student or event name": "Nombre del alumno o evento", "Court no.": "Nº de pista", "Court (One Pádel)": "Pista (One Pádel)", "Time accepted": "Hora aceptada", "Confirmed (court booked)": "Confirmada (pista reservada)", "Cancel court": "Cancelar pista", "Where": "Dónde", "Status": "Estado", "Do not repeat": "No repetir", "Weekly, 4 times": "Cada semana, 4 veces", "Weekly, 8 times": "Cada semana, 8 veces", "Weekly, 12 times": "Cada semana, 12 veces", "Tap again to delete": "Pulsa otra vez para borrar", "Deleted": "Borrado", "Delete": "Borrar", "End time must be after start time": "La hora de fin debe ser posterior al inicio", "Saved": "Guardado", "Error: ": "Error: ", "Save": "Guardar", "New event": "Nuevo evento", "Edit event": "Editar evento", "Type": "Tipo", "Date": "Fecha", "Start": "Inicio", "End": "Fin", "Repeat": "Repetir", "Notes": "Notas", "Wrong PIN": "PIN incorrecto", "Accepted. Book the court and mark it as confirmed.": "Aceptada. Reserva la pista y márcala como confirmada.", "Rejected": "Rechazada", "Request sent. I will confirm the time.": "Solicitud enviada. Te confirmaré la hora.", "Loading…": "Cargando…", "My requests": "Mis solicitudes", "Waiting for confirmation": "Esperando confirmación", "Time accepted · court still to book": "Hora aceptada · falta reservar pista", "Confirmed": "Confirmada", "Not available": "No disponible", "Cancelled": "Cancelada", "You have no requests.": "No tienes solicitudes.", "Request cancelled": "Solicitud cancelada", "Coach mode": "Modo entrenador", "Enter": "Entrar", "Lesson": "Clase", "Busy": "Ocupado", "court to be confirmed": "pista por confirmar", "to confirm": "por confirmar", " h free": " h libres", "court ": "pista ", "Language": "Idioma", "Invalid date": "Fecha no válida", "Invalid time": "Hora no válida", "Invalid duration": "Duración no válida", "Invalid place": "Sitio no válido", "That slot has already passed": "Ese hueco ya ha pasado", "That slot has just been taken. Please pick another.": "Ese hueco acaba de ocuparse. Elige otro.", "There are too many pending requests. Please message me directly.": "Hay demasiadas solicitudes pendientes. Escríbeme directamente.", "Invalid data": "Datos no válidos", "Request not found": "Solicitud no encontrada", "Schedule": "Agenda", "Sync Gmail": "Sincronizar Gmail", "Checking Gmail…": "Revisando Gmail…", "Up to date": "Al día", "Overlaps (": "Solapamientos (", "No overlaps.": "Sin solapamientos.", "TBC": "Pdte.", "⚠ book": "⚠ reservar", "⚠ no no.": "⚠ sin nº", "⚠ cancel": "⚠ cancelar", "Email notifications failing: ": "Los avisos por correo fallan: "}, "ru": {"Court (busy)": "Корт (занят)", "Court, no lesson": "Корт без занятия", "Your request": "Ваша заявка", "Request": "Заявка", "Pending": "Ожидает", "⚠ cancel court ": "⚠ отменить корт ", "Your lesson": "Ваше занятие", "Court booked": "Корт забронирован", "⚠ cancel court": "⚠ отменить корт", "⚠ court still to book": "⚠ корт ещё не забронирован", "⚠ no court no.": "⚠ нет номера корта", "Urbanization": "Урбанизации", "No database: changes made here are not saved when you close.": "Нет базы данных: изменения не сохраняются после закрытия.", "Loading schedule…": "Загрузка расписания…", "Could not refresh. Retrying…": "Не удалось обновить. Повтор…", "Lesson schedule": "Расписание занятий", "Coach view": "Режим тренера", "Tap a green slot and send your request": "Нажмите на зелёный слот и отправьте заявку", "Requests": "Заявки", "Exit coach mode": "Выйти из режима тренера", "Coach mode ✕": "Режим тренера ✕", "Previous week": "Предыдущая неделя", "Today": "Сегодня", "Next week": "Следующая неделя", "Zoom out": "Уменьшить", "Zoom in": "Увеличить", "Fit": "По экрану", "Free": "Свободно", "Previous month": "Предыдущий месяц", "Next month": "Следующий месяц", "Hours in ": "Часы: ", "Hours this month": "Часы за месяц", "Free · ": "Свободно · ", " more": " ещё", "Lesson, no place": "Занятие без места", "Hours this month · ": "Часы за месяц · ", "Lessons per student": "Занятий на ученика", "+ New": "+ Новое", "That slot is no longer free": "Этот слот уже занят", "Your name": "Ваше имя", "No preference": "Без разницы", "Optional: level, who you come with…": "По желанию: уровень, с кем придёте…", "Enter your name": "Введите ваше имя", "Send request": "Отправить заявку", "Request a lesson": "Запрос на занятие", ". I will confirm the time": ". Я подтвержу время", " (the court is already booked)": " (корт уже забронирован)", " and then book the court": " и потом забронирую корт", "Name": "Имя", "Start time": "Время начала", "Duration": "Длительность", "Where (if you have a preference)": "Где (если есть предпочтение)", "Note": "Заметка", "Cancel": "Отмена", "To accept (": "Ожидают подтверждения (", "No pending requests.": "Нет ожидающих заявок.", "No name": "Без имени", "Prefers ": "Предпочитает: ", "No place preference": "Место не важно", "Accept": "Принять", "Reject": "Отклонить", "Court still to book (": "Корт ещё нужно забронировать (", "No courts to book.": "Бронировать нечего.", "Court": "Корт", "Court confirmed": "Корт подтверждён", "Court booked ✓": "Корт забронирован ✓", "Courts to cancel (": "Корты для отмены (", "None. Choose “Cancel court” when editing a lesson or court.": "Нет. Выберите «Отменить корт» при редактировании занятия или корта.", " · court ": " · корт ", "Court cancelled": "Корт отменён", "Already cancelled ✓": "Уже отменён ✓", "Close": "Закрыть", "Student or event name": "Имя ученика или событие", "Court no.": "№ корта", "Court (One Pádel)": "Корт (One Pádel)", "Time accepted": "Время принято", "Confirmed (court booked)": "Подтверждено (корт забронирован)", "Cancel court": "Отменить корт", "Where": "Где", "Status": "Статус", "Do not repeat": "Не повторять", "Weekly, 4 times": "Каждую неделю, 4 раза", "Weekly, 8 times": "Каждую неделю, 8 раз", "Weekly, 12 times": "Каждую неделю, 12 раз", "Tap again to delete": "Нажмите ещё раз, чтобы удалить", "Deleted": "Удалено", "Delete": "Удалить", "End time must be after start time": "Время окончания должно быть позже начала", "Saved": "Сохранено", "Error: ": "Ошибка: ", "Save": "Сохранить", "New event": "Новое событие", "Edit event": "Изменить событие", "Type": "Тип", "Date": "Дата", "Start": "Начало", "End": "Конец", "Repeat": "Повтор", "Notes": "Заметки", "Wrong PIN": "Неверный PIN", "Accepted. Book the court and mark it as confirmed.": "Принято. Забронируйте корт и отметьте как подтверждённый.", "Rejected": "Отклонено", "Request sent. I will confirm the time.": "Заявка отправлена. Я подтвержу время.", "Loading…": "Загрузка…", "My requests": "Мои заявки", "Waiting for confirmation": "Ожидает подтверждения", "Time accepted · court still to book": "Время принято · корт ещё не забронирован", "Confirmed": "Подтверждено", "Not available": "Недоступно", "Cancelled": "Отменено", "You have no requests.": "У вас нет заявок.", "Request cancelled": "Заявка отменена", "Coach mode": "Режим тренера", "Enter": "Войти", "Lesson": "Занятие", "Busy": "Занято", "court to be confirmed": "корт уточняется", "to confirm": "уточняется", " h free": " ч свободно", "court ": "корт ", "Language": "Язык", "Invalid date": "Неверная дата", "Invalid time": "Неверное время", "Invalid duration": "Неверная длительность", "Invalid place": "Неверное место", "That slot has already passed": "Это время уже прошло", "That slot has just been taken. Please pick another.": "Этот слот только что заняли. Выберите другой.", "There are too many pending requests. Please message me directly.": "Слишком много ожидающих заявок. Напишите мне напрямую.", "Invalid data": "Неверные данные", "Request not found": "Заявка не найдена", "Schedule": "Расписание", "Sync Gmail": "Синхронизировать Gmail", "Checking Gmail…": "Проверяю Gmail…", "Up to date": "Обновлено", "Overlaps (": "Пересечения (", "No overlaps.": "Пересечений нет.", "TBC": "Ждёт", "⚠ book": "⚠ бронь", "⚠ no no.": "⚠ нет №", "⚠ cancel": "⚠ отмена", "Email notifications failing: ": "Не работают уведомления на почту: "}, "uk": {"Court (busy)": "Корт (зайнятий)", "Court, no lesson": "Корт без заняття", "Your request": "Ваша заявка", "Request": "Заявка", "Pending": "Очікує", "⚠ cancel court ": "⚠ скасувати корт ", "Your lesson": "Ваше заняття", "Court booked": "Корт заброньовано", "⚠ cancel court": "⚠ скасувати корт", "⚠ court still to book": "⚠ корт ще не заброньовано", "⚠ no court no.": "⚠ немає номера корту", "Urbanization": "Урбанізації", "No database: changes made here are not saved when you close.": "Немає бази даних: зміни не зберігаються після закриття.", "Loading schedule…": "Завантаження розкладу…", "Could not refresh. Retrying…": "Не вдалося оновити. Повтор…", "Lesson schedule": "Розклад занять", "Coach view": "Режим тренера", "Tap a green slot and send your request": "Натисніть на зелений слот і надішліть заявку", "Requests": "Заявки", "Exit coach mode": "Вийти з режиму тренера", "Coach mode ✕": "Режим тренера ✕", "Previous week": "Попередній тиждень", "Today": "Сьогодні", "Next week": "Наступний тиждень", "Zoom out": "Зменшити", "Zoom in": "Збільшити", "Fit": "За екраном", "Free": "Вільно", "Previous month": "Попередній місяць", "Next month": "Наступний місяць", "Hours in ": "Години: ", "Hours this month": "Години за місяць", "Free · ": "Вільно · ", " more": " ще", "Lesson, no place": "Заняття без місця", "Hours this month · ": "Години за місяць · ", "Lessons per student": "Занять на учня", "+ New": "+ Нове", "That slot is no longer free": "Цей слот уже зайнятий", "Your name": "Ваше ім'я", "No preference": "Байдуже", "Optional: level, who you come with…": "За бажанням: рівень, з ким прийдете…", "Enter your name": "Введіть ваше ім'я", "Send request": "Надіслати заявку", "Request a lesson": "Запит на заняття", ". I will confirm the time": ". Я підтверджу час", " (the court is already booked)": " (корт уже заброньовано)", " and then book the court": " і потім забронюю корт", "Name": "Ім'я", "Start time": "Час початку", "Duration": "Тривалість", "Where (if you have a preference)": "Де (якщо є побажання)", "Note": "Нотатка", "Cancel": "Скасувати", "To accept (": "Очікують підтвердження (", "No pending requests.": "Немає заявок, що очікують.", "No name": "Без імені", "Prefers ": "Надає перевагу: ", "No place preference": "Місце не важливе", "Accept": "Прийняти", "Reject": "Відхилити", "Court still to book (": "Корт ще треба забронювати (", "No courts to book.": "Бронювати нічого.", "Court": "Корт", "Court confirmed": "Корт підтверджено", "Court booked ✓": "Корт заброньовано ✓", "Courts to cancel (": "Корти для скасування (", "None. Choose “Cancel court” when editing a lesson or court.": "Немає. Виберіть «Скасувати корт» під час редагування заняття чи корту.", " · court ": " · корт ", "Court cancelled": "Корт скасовано", "Already cancelled ✓": "Уже скасовано ✓", "Close": "Закрити", "Student or event name": "Ім'я учня або подія", "Court no.": "№ корту", "Court (One Pádel)": "Корт (One Pádel)", "Time accepted": "Час прийнято", "Confirmed (court booked)": "Підтверджено (корт заброньовано)", "Cancel court": "Скасувати корт", "Where": "Де", "Status": "Статус", "Do not repeat": "Не повторювати", "Weekly, 4 times": "Щотижня, 4 рази", "Weekly, 8 times": "Щотижня, 8 разів", "Weekly, 12 times": "Щотижня, 12 разів", "Tap again to delete": "Натисніть ще раз, щоб видалити", "Deleted": "Видалено", "Delete": "Видалити", "End time must be after start time": "Час закінчення має бути пізніше початку", "Saved": "Збережено", "Error: ": "Помилка: ", "Save": "Зберегти", "New event": "Нова подія", "Edit event": "Змінити подію", "Type": "Тип", "Date": "Дата", "Start": "Початок", "End": "Кінець", "Repeat": "Повтор", "Notes": "Нотатки", "Wrong PIN": "Невірний PIN", "Accepted. Book the court and mark it as confirmed.": "Прийнято. Забронюйте корт і позначте як підтверджений.", "Rejected": "Відхилено", "Request sent. I will confirm the time.": "Заявку надіслано. Я підтверджу час.", "Loading…": "Завантаження…", "My requests": "Мої заявки", "Waiting for confirmation": "Очікує підтвердження", "Time accepted · court still to book": "Час прийнято · корт ще не заброньовано", "Confirmed": "Підтверджено", "Not available": "Недоступно", "Cancelled": "Скасовано", "You have no requests.": "У вас немає заявок.", "Request cancelled": "Заявку скасовано", "Coach mode": "Режим тренера", "Enter": "Увійти", "Lesson": "Заняття", "Busy": "Зайнято", "court to be confirmed": "корт уточнюється", "to confirm": "уточнюється", " h free": " год вільно", "court ": "корт ", "Language": "Мова", "Invalid date": "Невірна дата", "Invalid time": "Невірний час", "Invalid duration": "Невірна тривалість", "Invalid place": "Невірне місце", "That slot has already passed": "Цей час уже минув", "That slot has just been taken. Please pick another.": "Цей слот щойно зайняли. Виберіть інший.", "There are too many pending requests. Please message me directly.": "Забагато заявок, що очікують. Напишіть мені напряму.", "Invalid data": "Невірні дані", "Request not found": "Заявку не знайдено", "Schedule": "Розклад", "Sync Gmail": "Синхронізувати Gmail", "Checking Gmail…": "Перевіряю Gmail…", "Up to date": "Оновлено", "Overlaps (": "Перетини (", "No overlaps.": "Перетинів немає.", "TBC": "Чекає", "⚠ book": "⚠ бронь", "⚠ no no.": "⚠ нема №", "⚠ cancel": "⚠ скасув.", "Email notifications failing: ": "Не працюють сповіщення на пошту: "}};
+var UNITS={"es": ["h", "min"], "ru": ["ч", "мин"], "uk": ["год", "хв"], "en": ["h", "min"]};
+var L_MON={"es": ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"], "ru": ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"], "uk": ["січня", "лютого", "березня", "квітня", "травня", "червня", "липня", "серпня", "вересня", "жовтня", "листопада", "грудня"], "en": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]},L_MN={"es": ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"], "ru": ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"], "uk": ["Січень", "Лютий", "Березень", "Квітень", "Травень", "Червень", "Липень", "Серпень", "Вересень", "Жовтень", "Листопад", "Грудень"], "en": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]},L_DOW={"es": ["lun", "mar", "mié", "jue", "vie", "sáb", "dom"], "ru": ["пн", "вт", "ср", "чт", "пт", "сб", "вс"], "uk": ["пн", "вт", "ср", "чт", "пт", "сб", "нд"], "en": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]};
+var LANGS=[["es","Español"],["ru","Русский"],["uk","Українська"],["en","English"]];
+var LANG="en";
+function T(k){var m=I18N[LANG];return(m&&m[k])||k}
+var PLACES,PNAME,TYPES,MONTHS,MN,DOW;
+function rebuildConsts(){
+  PLACES=[["one","One Pádel"],["xiri","Xirivella"],["urb",T("Urbanization")]];
+  PNAME={one:"One Pádel",xiri:"Xirivella",urb:T("Urbanization")};
+  TYPES=[["clase",T("Lesson")],["upv","UPV"],["entreno","Entreno"],["ocupado",T("Busy")],["reserva",T("Court (busy)")],["pista",T("Court, no lesson")]];
+  MONTHS=L_MON[LANG];MN=L_MN[LANG];DOW=L_DOW[LANG];
+  document.documentElement.lang=LANG;
+}
+var DAY0=480,DAY1=1320,SLOTS=28;
+var S={date:new Date(),view:"week",z:1,owner:false,uid:"",events:[],reqs:{},loaded:false,db:null,evCol:null,rqCol:null,local:false,showFree:true,myName:""};
+S.date.setHours(0,0,0,0);
+
+function h(tag,attrs){
+  var e=document.createElement(tag);
+  if(attrs)for(var k in attrs){var v=attrs[k];if(v==null||v===false)continue;
+    if(k==="class")e.className=v;else if(k==="text")e.textContent=v;
+    else if(k.indexOf("on")===0)e.addEventListener(k.slice(2),v);
+    else if(k==="style")e.style.cssText=v;else e.setAttribute(k,v===true?"":v);}
+  for(var i=2;i<arguments.length;i++){var c=arguments[i];if(c==null||c===false)continue;
+    if(Array.isArray(c))c.forEach(function(x){if(x!=null&&x!==false)e.appendChild(typeof x==="string"?document.createTextNode(x):x)});
+    else e.appendChild(typeof c==="string"?document.createTextNode(c):c);}
+  return e;
+}
+function p2(n){return n<10?"0"+n:""+n}
+function ymd(d){return d.getFullYear()+"-"+p2(d.getMonth()+1)+"-"+p2(d.getDate())}
+function pd(s){var a=s.split("-");return new Date(+a[0],+a[1]-1,+a[2])}
+function addD(d,n){var x=new Date(d);x.setDate(x.getDate()+n);return x}
+function mon(d){return addD(d,-((d.getDay()+6)%7))}
+function tm(m){return Math.floor(m/60)+":"+p2(m%60)}
+function tc(m){return Math.floor(m/60)+":"+p2(m%60)}
+function rng(a,b){return tc(a)+"–"+tc(b)}
+function dur(m){var hh=Math.floor(m/60),mm=m%60,u=UNITS[LANG];return mm?(hh?hh+" "+u[0]+" "+mm:mm+" "+u[1]):hh+" "+u[0]}
+function nowMin(){var n=new Date();return n.getHours()*60+n.getMinutes()}
+var MEM={};
+function lsGet(k,d){try{var v=localStorage.getItem(k);return v==null?(k in MEM?MEM[k]:d):v}catch(e){return k in MEM?MEM[k]:d}}
+function lsSet(k,v){MEM[k]=v;try{localStorage.setItem(k,v)}catch(e){}}
+function toast(t){var el=document.getElementById("toast");el.className="toast";el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(function(){el.hidden=true},3500)}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+
+/* ---------- data ---------- */
+function pendingItems(){var out=[];Object.keys(S.reqs).forEach(function(u){var r=S.reqs[u];(r.items||[]).forEach(function(it){out.push(Object.assign({},it,{uid:u,name:r.name||it.name||""}))})});return out}
+function dayItems(ds){
+  var out=[];
+  S.events.forEach(function(e){if(e.date===ds)out.push({k:"ev",e:e,start:e.start,dur:e.dur})});
+  pendingItems().forEach(function(it){if(it.date===ds&&it.status==="pendiente")out.push({k:"pend",it:it,start:it.start,dur:it.dur})});
+  return out.sort(function(a,b){return a.start-b.start});
+}
+function mine(x){
+  if(S.owner)return false;
+  var ids=myIds();
+  return x.k==="pend"?ids.indexOf(x.it.id)>=0:!!(x.e.rq&&ids.indexOf(x.e.rq)>=0);
+}
+function freeSegs(ds){
+  var today=ymd(new Date()),floor=DAY0;
+  if(ds<today)return [];
+  if(ds===today)floor=Math.max(DAY0,Math.ceil(nowMin()/30)*30);
+  var busy=dayItems(ds).filter(function(x){return !(x.k==="ev"&&x.e.type==="pista")}).map(function(x){return [x.start,x.start+x.dur]}).sort(function(a,b){return a[0]-b[0]});
+  var cur=floor,out=[];
+  busy.forEach(function(b){if(b[0]>cur)out.push([cur,Math.min(b[0],DAY1)]);cur=Math.max(cur,b[1])});
+  if(cur<DAY1)out.push([cur,DAY1]);
+  return out.filter(function(s){return S.owner?s[1]>s[0]:s[1]-s[0]>=60});
+}
+function boxClass(x){
+  if(x.k==="pend")return mine(x)?"pend mine":"pend";
+  var e=x.e;
+  var c=e.type==="clase"||e.type==="reserva"?(e.place||"ocupado"):e.type==="pista"?"pistaok":e.type;
+  return c+(S.owner&&e.status==="cancelar"?" canc":"")+((e.status==="aceptada"||(S.owner&&needCourt(e)))?" acc":"")+(mine(x)?" mine":"");
+}
+function needCourt(e){return e.place==="one"&&(e.type==="clase"||e.type==="reserva")&&!e.court&&e.status!=="aceptada"}
+function boxText(x,ht){
+  if(x.k==="pend"){var t=mine(x)?T("Your request"):(S.owner?x.it.name:T("Request"));
+    return [h("b",{text:t}),h("span",{text:S.owner?(x.it.place&&PNAME[x.it.place]||T("Pending")):T("Pending")})]}
+  var e=x.e;
+  if(e.type==="pista"){
+    var pn=Math.max(1,Math.floor(((ht||40)-3)/11)),pc=S.owner&&e.status==="cancelar"?T("⚠ cancel court ")+(e.court||""):T("court ")+(e.court||"")+" ✓";
+    var po=[h("b",{text:rng(e.start,e.start+e.dur)})];
+    if(pn>=3){po.push(h("span",{text:T("Free")}));po.push(h("span",{text:pc}))}
+    else if(pn===2)po.push(h("span",{text:T("Free")+" · "+pc}));
+    return po}
+  var name=(S.owner&&e.label)||(mine(x)?T("Your lesson"):e.type==="clase"?T("Lesson"):e.type==="upv"?"UPV":e.type==="entreno"?"Entreno":e.type==="reserva"?T("Court booked"):T("Busy"));
+  var av=(ht||40)-4,n=av<10.5?1:1+Math.floor((av-10.5)/8.8);
+  var place=e.place&&(e.type==="clase"||e.type==="reserva")?PNAME[e.place]:"";
+  var cl="",bd="";
+  var short=function(c){c=String(c);return c.length>4?c.slice(0,3):c};
+  if(S.owner&&e.status==="cancelar"){cl=T("⚠ cancel");bd="⚠"}
+  else if(e.status==="aceptada"){cl=S.owner?T("⚠ book"):T("Pending");bd=S.owner?"⚠":"?"}
+  else if(S.owner&&needCourt(e)){cl=T("⚠ no no.");bd="⚠"}
+  else if(e.place==="one"&&e.court){cl=T("court ")+e.court+(e.type==="clase"||e.type==="reserva"?" ✓":"");bd="#"+short(e.court)}
+  var out=[];
+  if(n<3&&bd)out.push(h("b",{class:"nm"},h("i",{class:"t",text:name}),h("i",{class:"bd",text:bd})));
+  else out.push(h("b",{text:name}));
+  if(n>=2)out.push(h("span",{class:"tr",text:rng(e.start,e.start+e.dur)}));
+  if(n>=4){if(place)out.push(h("span",{text:place}));if(cl)out.push(h("span",{text:cl}))}
+  else if(n===3){var l3=cl||place;if(l3)out.push(h("span",{text:l3}))}
+  return out;
+}
+
+/* ---------- render ---------- */
+function render(){renderBar();renderNote();
+  var m=document.getElementById("main");m.textContent="";
+  m.appendChild(renderGrid());
+  renderFab();renderFoot();
+}
+function renderNote(){
+  var n=document.getElementById("note");n.textContent="";
+  if(S.local)n.appendChild(h("div",{class:"notice",text:T("No database: changes made here are not saved when you close.")}));
+  else if(!S.loaded)n.appendChild(h("div",{class:"notice",text:T("Loading schedule…")}));
+  else if(S.fail)n.appendChild(h("div",{class:"notice",text:T("Could not refresh. Retrying…")}));
+  if(S.owner&&S.mailErr)n.appendChild(h("div",{class:"notice",text:T("Email notifications failing: ")+S.mailErr}));
+}
+function periodLabel(){
+  var d=S.date;
+  if(S.view==="month")return MONTHS[d.getMonth()]+" "+d.getFullYear();
+  if(S.view==="day")return DOW[(d.getDay()+6)%7]+" "+d.getDate()+" "+MONTHS[d.getMonth()];
+  var a=mon(d),b=addD(a,6);
+  return a.getDate()+(a.getMonth()!==b.getMonth()?" "+MONTHS[a.getMonth()].slice(0,3):"")+" – "+b.getDate()+" "+MONTHS[b.getMonth()]+" "+b.getFullYear();
+}
+function nav(n){
+  var d=S.date;
+  if(S.view==="month"){d=new Date(d.getFullYear(),d.getMonth()+n,1)}
+  else d=addD(d,n*(S.view==="week"?7:1));
+  S.date=d;render();
+}
+function renderBar(){
+  var b=document.getElementById("bar");b.textContent="";
+  var pc=S.owner?pendingItems().filter(function(i){return i.status==="pendiente"}).length+S.events.filter(function(e){return e.status==="cancelar"&&e.date>=ymd(new Date())}).length+overlaps().length:0;
+  var myc=0;
+  var views=[["day","Día"],["week","Semana"],["month","Mes"]];
+  var r1=h("div",{class:"row"},
+    h("div",{class:"grow",style:"min-width:150px"},h("div",{class:"title",text:T("Schedule"),onclick:titleTap,style:"user-select:none;-webkit-user-select:none"}),h("div",{class:"sub",text:S.owner?T("Coach view"):T("Tap a green slot and send your request")})),
+    h("button",{class:"btn sm","aria-label":T("Language"),title:T("Language"),onclick:openLang},"🌐 "+LANG.toUpperCase()),
+    S.owner?h("button",{class:"btn sm",title:T("Sync Gmail"),"aria-label":T("Sync Gmail"),onclick:function(){syncNow(true)}},"↻"):null,
+    S.owner?h("button",{class:"btn",onclick:openRequests},T("Requests"),pc?h("span",{class:"badge",text:""+pc}):null):null,
+    S.owner?h("button",{class:"btn sm",title:T("Exit coach mode"),onclick:logout},T("Coach mode ✕")):null);
+  var r2=h("div",{class:"row"},
+    h("button",{class:"btn",onclick:openPicker,"aria-haspopup":"dialog"},MN[S.date.getMonth()]+" ▾"),
+    h("button",{class:"btn sm","aria-label":T("Previous week"),onclick:function(){S.anim="r";nav(-1)}},"‹"),
+    h("button",{class:"btn sm",onclick:function(){S.date=new Date();S.date.setHours(0,0,0,0);render()}},T("Today")),
+    h("button",{class:"btn sm","aria-label":T("Next week"),onclick:function(){S.anim="l";nav(1)}},"›"),
+    h("div",{class:"sub grow",style:"font-weight:600;color:var(--ink);min-width:120px",text:periodLabel()}));
+  var r3=h("div",{class:"row"});
+  {
+    r3.appendChild(h("div",{class:"zoom"},
+      h("button",{class:"btn sm","aria-label":T("Zoom out"),title:T("Zoom out"),onclick:function(){zoom(-.2)}},"−"),
+      h("button",{class:"btn sm","aria-label":T("Zoom in"),onclick:function(){zoom(.2)}},"+"),
+      h("button",{class:"btn sm",onclick:fit},T("Fit"))));
+  }
+  var lg=h("div",{class:"legend grow"});
+  var L=[["one","One Pádel"],["xiri","Xirivella"],["urb",T("Urbanization")],["upv","UPV"],["ent","Entreno"],["occ",T("Busy")],["pq1",T("Request")]];if(!S.owner)L.unshift(["free",T("Free")]);
+  L.forEach(function(l){lg.appendChild(h("span",{class:"lg"},h("i",{style:"background:var(--"+l[0]+")"+(l[0]==="pq1"?";border:1px dashed var(--pq-line)":"")}),l[1]))});
+  r3.appendChild(lg);
+  b.appendChild(r1);b.appendChild(r2);b.appendChild(r3);
+}
+var tapN=0,tapT;function titleTap(){if(S.owner)return;tapN++;clearTimeout(tapT);tapT=setTimeout(function(){tapN=0},900);if(tapN>=3){tapN=0;askPin()}}
+var PK=null;
+function openPicker(){
+  var base=new Date(S.date.getFullYear(),S.date.getMonth(),1);PK={y:base.getFullYear(),m:base.getMonth()};drawPicker()}
+function drawPicker(){
+  var L=document.getElementById("layer");L.textContent="";
+  var first=new Date(PK.y,PK.m,1),start=mon(first),today=ymd(new Date()),wk0=ymd(mon(S.date)),wk1=ymd(addD(mon(S.date),6));
+  var g=h("div",{class:"pk-g"});
+  DOW.forEach(function(x){g.appendChild(h("div",{class:"pk-d",text:x}))});
+  for(var i=0;i<42;i++){var c=addD(start,i);if(i>=35&&c.getMonth()!==PK.m)break;
+    (function(c){var ds=ymd(c);
+      g.appendChild(h("button",{class:"pk-c"+(c.getMonth()!==PK.m?" out":"")+(ds===today?" today":"")+(ds>=wk0&&ds<=wk1?" sel":""),type:"button",onclick:function(){S.date=c;closeSheet();render()}},""+c.getDate()))})(c)}
+  var box=h("div",{class:"pk"},
+    h("div",{class:"row",style:"justify-content:space-between;margin-bottom:6px"},
+      h("button",{class:"btn sm",type:"button","aria-label":T("Previous month"),onclick:function(){PK.m--;if(PK.m<0){PK.m=11;PK.y--}drawPicker()}},"‹"),
+      h("b",{text:MN[PK.m]+" "+PK.y}),
+      h("button",{class:"btn sm",type:"button","aria-label":T("Next month"),onclick:function(){PK.m++;if(PK.m>11){PK.m=0;PK.y++}drawPicker()}},"›")),
+    g,
+    h("div",{class:"row",style:"margin-top:8px"},
+      h("button",{class:"btn sm grow",type:"button",onclick:function(){S.date=new Date();S.date.setHours(0,0,0,0);closeSheet();render()}},T("Today")),
+      S.owner?h("button",{class:"btn sm grow",type:"button",onclick:function(){var o=S.date;S.date=new Date(PK.y,PK.m,1);var n=monthSummary();S.date=o;sheet(T("Hours in ")+MN[PK.m],n)}},T("Hours this month")):null));
+  var ov=h("div",{class:"ov pkov",onclick:function(e){if(e.target===ov)closeSheet()}},box);
+  L.appendChild(ov);
+}
+function openLang(){
+  var box=h("div",{class:"chips"});
+  LANGS.forEach(function(l){box.appendChild(h("button",{class:"chip",type:"button","aria-pressed":LANG===l[0]?"true":"false",onclick:function(){LANG=l[0];lsSet("agenda-lang",LANG);rebuildConsts();closeSheet();render()}},l[1]))});
+  sheet(T("Language"),h("div",null,box,h("div",{class:"acts"},h("button",{class:"btn grow",type:"button",onclick:closeSheet},T("Close")))));
+}
+function zoom(dz){S.z=Math.max(1,Math.min(3.5,Math.round((S.z+dz)*10)/10));render()}
+function fit(){S.z=1;render()}
+
+function renderGrid(){
+  var dates=[],n=S.view==="week"?7:1,start=S.view==="week"?mon(S.date):S.date,i;
+  for(i=0;i<n;i++)dates.push(addD(start,i));
+  var mainEl=document.getElementById("main"),availH=Math.max(260,mainEl.clientHeight-46);
+  var H=Math.max(8,Math.round(availH/SLOTS*S.z*10)/10);
+  var sc=h("div",{class:"scroller",style:"--h:"+H+"px;--n:"+n});
+  var wk=h("div",{class:"wk"});
+  wk.appendChild(h("div",{class:"corner"}));
+  var today=ymd(new Date());
+  dates.forEach(function(d){
+    var ds=ymd(d);
+    wk.appendChild(h("div",{class:"hd"+(ds===today?" today":""),role:"button",tabindex:"0",onclick:function(){}},DOW[(d.getDay()+6)%7],h("b",{text:""+d.getDate()})));
+  });
+  var tmc=h("div",{class:"tm"});
+  for(i=0;i<=SLOTS;i+=(H>=26?1:2)){var mm=DAY0+i*30;if(mm%60===0||H>=26)tmc.appendChild(h("span",{style:"top:"+(i*H)+"px;"+(i===0?"transform:none":i===SLOTS?"transform:translateY(-100%)":""),text:tm(mm)}))}
+  wk.appendChild(tmc);
+  dates.forEach(function(d){wk.appendChild(dayCol(d,H))});
+  sc.appendChild(wk);
+  if(S.anim){wk.style.animation=(S.anim==="l"?"slideL":"slideR")+" .22s ease-out";S.anim=""}
+  var pin=null;
+  sc.addEventListener("touchstart",function(e){if(e.touches.length===2)pin={d:dist(e.touches),z:S.z}},{passive:true});
+  sc.addEventListener("touchmove",function(e){if(pin&&e.touches.length===2){var nz=Math.max(1,Math.min(3.5,pin.z*dist(e.touches)/pin.d));S.pz=Math.round(nz*10)/10}},{passive:true});
+  sc.addEventListener("touchend",function(){if(pin){pin=null;if(S.pz&&S.pz!==S.z){S.z=S.pz;render()}}});
+  var sw=null;
+  sc.addEventListener("touchstart",function(e){sw=e.touches.length===1?{x:e.touches[0].clientX,y:e.touches[0].clientY,t:Date.now()}:null},{passive:true});
+  sc.addEventListener("touchend",function(e){
+    if(!sw||!e.changedTouches.length){sw=null;return}
+    var dx=e.changedTouches[0].clientX-sw.x,dy=e.changedTouches[0].clientY-sw.y,dt=Date.now()-sw.t;sw=null;
+    if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.6&&dt<700){S.anim=dx<0?"l":"r";nav(dx<0?1:-1)}
+  });
+  sc.addEventListener("wheel",function(e){if(e.ctrlKey){e.preventDefault();zoom(e.deltaY<0?.2:-.2)}},{passive:false});
+  setTimeout(function(){var el=document.querySelector(".scroller");if(el&&!el.dataset.sc){el.dataset.sc="1";var t=(Math.max(DAY0,Math.min(nowMin()-60,DAY1-300))-DAY0)/30*H;if(S.z>1&&dates.some(function(d){return ymd(d)===today}))el.scrollTop=t}},0);
+  return sc;
+}
+function dist(t){var dx=t[0].clientX-t[1].clientX,dy=t[0].clientY-t[1].clientY;return Math.sqrt(dx*dx+dy*dy)}
+function dayCol(d,H){
+  var ds=ymd(d),today=ymd(new Date());
+  var col=h("div",{class:"col"+(ds<today?" past":"")});
+  var cut=S.events.filter(function(e){return e.date===ds&&e.type==="pista"&&(S.owner||e.status!=="cancelar")}).map(function(e){return [e.start,e.start+e.dur]});
+  var segs=[];
+  freeSegs(ds).forEach(function(s0){
+    var parts=[s0];
+    cut.forEach(function(c){var np=[];parts.forEach(function(q){if(c[1]<=q[0]||c[0]>=q[1]){np.push(q);return}if(c[0]>q[0])np.push([q[0],c[0]]);if(c[1]<q[1])np.push([c[1],q[1]])});parts=np});
+    parts.forEach(function(q){if(q[1]-q[0]>=30)segs.push(q)});
+  });
+  segs.forEach(function(s){
+    var len=s[1]-s[0];
+    col.appendChild(h("div",{class:"free",role:"button",style:"top:"+((s[0]-DAY0)/30*H)+"px;height:"+(len/30*H-1)+"px",
+      onclick:function(ev){var off=ev.offsetY!=null&&ev.target===ev.currentTarget?ev.offsetY:0;var st=s[0]+Math.floor(off/H)*30;st=Math.min(st,s[1]-30);onFree(ds,Math.max(s[0],st),s[1])}},
+      len>=60&&H>=10||len>=30&&H>=16?[h("b",{text:rng(s[0],s[1])}),len>=90&&H>=15?h("span",{text:T("Free · ")+dur(len)}):(len>=60&&H>=12?h("span",{text:T("Free")}):null)]:null));
+  });
+  dayItems(ds).forEach(function(x){
+    if(!S.owner&&x.k==="ev"&&x.e.type==="pista"&&x.e.status==="cancelar")return;
+    var top=(x.start-DAY0)/30*H,ht=x.dur/30*H;
+    var half=x.k==="ev"&&x.e.type==="pista"&&dayItems(ds).some(function(y){return y!==x&&!(y.k==="ev"&&y.e.type==="pista")&&y.start<x.start+x.dur&&y.start+y.dur>x.start});
+    col.appendChild(h("div",{class:"ev "+boxClass(x)+(half?" half":""),style:"top:"+top+"px;height:"+(ht-1)+"px",role:"button",tabindex:"0",
+      onclick:function(ev){ev.stopPropagation();onEvent(x)}},boxText(x,ht-1)));
+  });
+  if(ds===today){var n=nowMin();if(n>=DAY0&&n<=DAY1)col.appendChild(h("div",{class:"nowline",style:"top:"+((n-DAY0)/30*H)+"px"}))}
+  return col;
+}
+function onFree(ds,start,end){if(S.owner)openEvent({date:ds,start:start,dur:60,type:"clase",place:"one",status:"confirmada"},true);else openRequest(ds,start)}
+function onEvent(x){
+  if(!S.owner&&x.k==="ev"&&x.e.type==="pista"){onFree(x.e.date,x.start,x.start+x.dur);return}
+  if(S.owner&&x.k==="ev"&&x.e.type==="pista"&&x.e.status!=="cancelar"){var p=x.e;
+    openEvent({date:p.date,start:p.start,dur:Math.min(p.dur,90),type:"clase",place:"one",court:p.court,status:"confirmada"},true,
+      h("button",{class:"btn",type:"button",onclick:function(){closeSheet();openEvent(p,false)}},T("Court, no lesson")+" ✎"));return}
+  if(S.owner){if(x.k==="pend")openRequests();else openEvent(x.e,false)}
+  else if(mine(x))openMine();
+}
+
+function renderMonth(){
+  var d=S.date,first=new Date(d.getFullYear(),d.getMonth(),1),start=mon(first),wrap=h("div"),today=ymd(new Date());
+  var g=h("div",{class:"mo"});
+  DOW.forEach(function(x){g.appendChild(h("div",{class:"dn",text:x}))});
+  var days=[];
+  for(var i=0;i<42;i++){var c=addD(start,i);if(i>=35&&c.getMonth()!==d.getMonth())break;days.push(c)}
+  days.forEach(function(c){
+    var ds=ymd(c),cell=h("div",{class:"mc"+(c.getMonth()!==d.getMonth()?" out":"")+(ds===today?" today":""),role:"button",tabindex:"0",onclick:function(){S.date=c;S.view="week";render()}},h("b",{text:""+c.getDate()}));
+    var its=dayItems(ds).filter(function(x){return x.k==="pend"||(x.e.type!=="ocupado"&&x.e.type!=="reserva"&&x.e.type!=="pista")});
+    its.slice(0,4).forEach(function(x){
+      var cl=x.k==="pend"?"pend":(x.e.type==="clase"?(x.e.place||"other"):x.e.type),
+          nm=x.k==="pend"?(S.owner?x.it.name:T("Pending")):((S.owner&&x.e.label)||(x.e.type==="clase"?T("Lesson"):x.e.type==="upv"?"UPV":"Entreno"));
+      cell.appendChild(h("div",{class:"mchip "+cl,text:Math.floor(x.start/60)+" "+nm}));
+    });
+    if(its.length>4)cell.appendChild(h("div",{class:"sub",style:"font-size:9px;margin-top:2px",text:"+"+(its.length-4)+T(" more")}));
+    var fm=freeSegs(ds).reduce(function(a,s){return a+s[1]-s[0]},0);
+    if(fm>=60)cell.appendChild(h("div",{class:"mfree",text:Math.round(fm/60)+T(" h free")}));
+    g.appendChild(cell);
+  });
+  wrap.appendChild(g);
+  if(S.owner)wrap.appendChild(monthSummary(days));
+  return wrap;
+}
+function monthSummary(days){
+  var y=S.date.getFullYear(),m=S.date.getMonth();
+  var byPlace={},byName={},tot=0;
+  S.events.forEach(function(e){
+    var d=pd(e.date);if(d.getFullYear()!==y||d.getMonth()!==m)return;
+    if(e.type==="ocupado"||e.type==="reserva"||e.type==="pista")return;
+    var key=e.type==="clase"?(PNAME[e.place]||T("Lesson, no place")):e.type==="upv"?"UPV":"Entreno";
+    byPlace[key]=(byPlace[key]||0)+e.dur;tot+=e.dur;
+    if(e.type==="clase"&&e.label)byName[e.label]=(byName[e.label]||0)+e.dur;
+  });
+  var t1=h("table"),t2=h("table");
+  Object.keys(byPlace).sort().forEach(function(k){t1.appendChild(h("tr",null,h("td",{text:k}),h("td",{class:"n",text:dur(byPlace[k])})))});
+  Object.keys(byName).sort(function(a,b){return byName[b]-byName[a]}).forEach(function(k){t2.appendChild(h("tr",null,h("td",{text:k}),h("td",{class:"n",text:dur(byName[k])})))});
+  return h("div",{class:"sum"},
+    h("div",{class:"card"},h("h3",{text:T("Hours this month · ")+dur(tot)}),t1),
+    h("div",{class:"card"},h("h3",{text:T("Lessons per student")}),t2));
+}
+function renderFab(){
+  var old=document.getElementById("fab");if(old)old.remove();
+  if(!S.owner)return;
+  document.body.appendChild(h("button",{class:"fab",id:"fab",onclick:function(){openEvent({date:ymd(S.date),start:600,dur:60,type:"clase",place:"one",status:"confirmada"},true)}},T("+ New")));
+}
+
+/* ---------- sheets ---------- */
+function closeSheet(){document.getElementById("layer").textContent=""}
+function sheet(title,body,lock){
+  var L=document.getElementById("layer");L.textContent="";
+  var ov=h("div",{class:"ov",onclick:function(e){if(e.target===ov&&!lock)closeSheet()}},h("div",{class:"sheet",role:"dialog","aria-label":title},h("h2",{text:title}),body));
+  L.appendChild(ov);
+  ov.addEventListener("keydown",function(e){
+    if(e.key!=="Enter"||e.shiftKey||e.isComposing)return;
+    var t=e.target,tg=t&&t.tagName;if(tg==="TEXTAREA")return;
+    if(tg==="BUTTON"&&!(t.classList&&t.classList.contains("chip")))return; // Cancelar/Borrar... conservan su Intro normal
+    var ok=ov.querySelector(".acts .btn.pri");if(ok&&!ok.disabled){e.preventDefault();ok.click()}
+  });
+}
+function chips(opts,val,on,disabledFn){
+  var box=h("div",{class:"chips"});
+  opts.forEach(function(o){var b=h("button",{class:"chip",type:"button","aria-pressed":val===o[0]?"true":"false",disabled:disabledFn&&disabledFn(o[0])?true:null,
+    onclick:function(){on(o[0]);[].forEach.call(box.children,function(c){c.setAttribute("aria-pressed","false")});b.setAttribute("aria-pressed","true")}},o[1]);box.appendChild(b)});
+  return box;
+}
+function field(label,el){return h("div",{class:"f"},h("label",{text:label}),el)}
+function timeSelect(val,min,max){var s=h("select");for(var m=min;m<=max;m+=30)s.appendChild(h("option",{value:""+m,text:tm(m),selected:m===val?true:null}));return s}
+
+/* student: request */
+function openRequest(ds,start){
+  var seg=freeSegs(ds).filter(function(s){return start>=s[0]&&start<s[1]})[0];
+  if(!seg){toast(T("That slot is no longer free"));return}
+  var hasCourt=S.events.some(function(e){return e.type==="pista"&&e.status!=="cancelar"&&e.date===ds&&e.start<=start&&start<e.start+e.dur});
+  var st={start:start,dur:60,place:hasCourt?"one":"",name:S.myName||lsGet("agenda-name",""),note:""};
+  var nameI=h("input",{type:"text",placeholder:T("Your name"),value:st.name,autocomplete:"name"});
+  var startS,durBox,place;
+  function fits(d){return st.start+d<=seg[1]}
+  function redoDur(){durBox.replaceWith(durBox=durChips())}
+  function durChips(){if(!fits(st.dur))st.dur=fits(60)?60:30;return chips([[60,dur(60)],[90,dur(90)]].map(function(o){return [""+o[0],o[1]]}),""+st.dur,function(v){st.dur=+v},function(v){return !fits(+v)})}
+  startS=timeSelect(start,seg[0],seg[1]-60);startS.addEventListener("change",function(){st.start=+startS.value;redoDur()});
+  durBox=durChips();
+  place=chips([["",T("No preference")]].concat(PLACES),st.place,function(v){st.place=v});
+  var note=h("textarea",{rows:"2",placeholder:T("Optional: level, who you come with…")});
+  var send=h("button",{class:"btn pri grow",type:"button",onclick:function(){
+    var nm=nameI.value.trim();if(!nm){toast(T("Enter your name"));nameI.focus();return}
+    if(!fits(st.dur)||freeSegs(ds).every(function(s){return !(st.start>=s[0]&&st.start+st.dur<=s[1])})){toast(T("That slot is no longer free"));return}
+    S.myName=nm;lsSet("agenda-name",nm);
+    submitRequest({date:ds,start:st.start,dur:st.dur,place:st.place,note:note.value.trim()},nm);
+  }},T("Send request"));
+  var d=pd(ds);
+  sheet(T("Request a lesson"),h("div",null,
+    h("div",{class:"sub",text:DOW[(d.getDay()+6)%7]+" "+d.getDate()+" de "+MONTHS[d.getMonth()]+T(". I will confirm the time")+(hasCourt?T(" (the court is already booked)"):T(" and then book the court"))+"."}),
+    field(T("Name"),nameI),field(T("Start time"),startS),field(T("Duration"),durBox),field(T("Where (if you have a preference)"),place),field(T("Note"),note),
+    h("div",{class:"acts"},send,h("button",{class:"btn",type:"button",onclick:closeSheet},T("Cancel")))),true);
+}
+/* solapamientos entre cosas reales (clases, UPV, entrenos) en fechas futuras */
+function evName(e){return e.label||(TYPES.filter(function(t){return t[0]===e.type})[0]||[0,e.type])[1]}
+function overlaps(){
+  var today=ymd(new Date()),real=["clase","reserva","upv","entreno"],L=S.events.filter(function(e){return e.date>=today&&real.indexOf(e.type)>=0}),out=[];
+  for(var i=0;i<L.length;i++)for(var j=i+1;j<L.length;j++){var a=L[i],b=L[j];if(a.date===b.date&&a.start<b.start+b.dur&&b.start<a.start+a.dur)out.push([a,b])}
+  return out.sort(function(p,q){return (p[0].date+tm(p[0].start))<(q[0].date+tm(q[0].start))?-1:1});
+}
+var syncing=false;
+function syncNow(manual){
+  if(!S.owner||syncing)return;
+  if(!manual){var last=+lsGet("agenda-sync","0");if(Date.now()-last<180000)return}
+  syncing=true;lsSet("agenda-sync",""+Date.now());
+  if(manual)toast(T("Checking Gmail…"));
+  api("ownerSync",S.pin).then(function(){syncing=false;return reload()}).then(function(){if(manual)toast(T("Up to date"))}).catch(function(er){syncing=false;if(manual)toast(errMsg(er))});
+}
+/* owner: requests */
+function openRequests(){
+  var body=h("div");
+  var pend=pendingItems().filter(function(i){return i.status==="pendiente"}).sort(function(a,b){return (a.date+tm(a.start))<(b.date+tm(b.start))?-1:1});
+  body.appendChild(h("h3",{text:T("To accept (")+pend.length+")"}));
+  if(!pend.length)body.appendChild(h("div",{class:"sub",text:T("No pending requests.")}));
+  pend.forEach(function(it){
+    var d=pd(it.date);
+    body.appendChild(h("div",{class:"item"},h("div",{class:"grow"},h("b",{text:it.name||T("No name")}),
+      h("div",{text:DOW[(d.getDay()+6)%7]+" "+d.getDate()+" "+MONTHS[d.getMonth()].slice(0,3)+" · "+tm(it.start)+"–"+tm(it.start+it.dur)+" ("+dur(it.dur)+")"}),
+      h("div",{class:"sub",text:(it.place?T("Prefers ")+PNAME[it.place]:T("No place preference"))+(it.note?" · "+it.note:"")})),
+      h("div",{class:"row",style:"flex-direction:column;align-items:stretch"},
+        h("button",{class:"btn sm pri",onclick:function(){acceptReq(it)}},T("Accept")),
+        h("button",{class:"btn sm dng",onclick:function(){rejectReq(it)}},T("Reject")))));
+  });
+  var today=ymd(new Date());
+  var wait=S.events.filter(function(e){return e.status==="aceptada"&&e.date>=today}).sort(function(a,b){return (a.date+tm(a.start))<(b.date+tm(b.start))?-1:1});
+  body.appendChild(h("h3",{style:"margin-top:16px",text:T("Court still to book (")+wait.length+")"}));
+  if(!wait.length)body.appendChild(h("div",{class:"sub",text:T("No courts to book.")}));
+  wait.forEach(function(e){
+    var d=pd(e.date),court=h("input",{type:"text",inputmode:"numeric",placeholder:T("Court"),value:e.court||"",style:"width:70px;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:5px"});
+    body.appendChild(h("div",{class:"item"},h("div",{class:"grow"},h("b",{text:e.label||T("Lesson")}),
+      h("div",{class:"sub",text:DOW[(d.getDay()+6)%7]+" "+d.getDate()+" "+MONTHS[d.getMonth()].slice(0,3)+" · "+tm(e.start)+"–"+tm(e.start+e.dur)+" · "+(PNAME[e.place]||"")})),
+      e.place==="one"?court:null,
+      h("button",{class:"btn sm pri",onclick:function(){var n=Object.assign({},e,{status:"confirmada",court:court.value.trim()||e.court||""});saveEvent(n).catch(function(){});toast(T("Court confirmed"));openRequests()}},T("Court booked ✓"))));
+  });
+  var canc=S.events.filter(function(e){return e.status==="cancelar"&&e.date>=today}).sort(function(a,b){return (a.date+tm(a.start))<(b.date+tm(b.start))?-1:1});
+  body.appendChild(h("h3",{style:"margin-top:16px",text:T("Courts to cancel (")+canc.length+")"}));
+  if(!canc.length)body.appendChild(h("div",{class:"sub",text:T("None. Choose “Cancel court” when editing a lesson or court.")}));
+  canc.forEach(function(e){
+    var d=pd(e.date);
+    body.appendChild(h("div",{class:"item"},h("div",{class:"grow"},h("b",{text:(e.label||T("Court, no lesson"))+(e.court?T(" · court ")+e.court:"")}),
+      h("div",{class:"sub",text:DOW[(d.getDay()+6)%7]+" "+d.getDate()+" "+MONTHS[d.getMonth()].slice(0,3)+" · "+tm(e.start)+"–"+tm(e.start+e.dur)})),
+      h("button",{class:"btn sm pri",onclick:function(){
+        (e.type==="pista"?delEvent(e):saveEvent(Object.assign({},e,{status:"aceptada",court:""}))).catch(function(){});toast(T("Court cancelled"));openRequests()}},T("Already cancelled ✓"))));
+  });
+  var ov=overlaps();
+  body.appendChild(h("h3",{style:"margin-top:16px",text:T("Overlaps (")+ov.length+")"}));
+  if(!ov.length)body.appendChild(h("div",{class:"sub",text:T("No overlaps.")}));
+  ov.forEach(function(p){
+    var d=pd(p[0].date);
+    body.appendChild(h("div",{class:"item",style:"cursor:pointer",onclick:function(){closeSheet();openEvent(p[0],false)}},h("div",{class:"grow"},
+      h("b",{text:"⚠ "+evName(p[0])+" ↔ "+evName(p[1])}),
+      h("div",{class:"sub",text:DOW[(d.getDay()+6)%7]+" "+d.getDate()+" "+MONTHS[d.getMonth()].slice(0,3)+" · "+tm(p[0].start)+"–"+tm(p[0].start+p[0].dur)+" / "+tm(p[1].start)+"–"+tm(p[1].start+p[1].dur)}))));
+  });
+  body.appendChild(h("div",{class:"acts"},h("button",{class:"btn grow",onclick:closeSheet},T("Close"))));
+  sheet(T("Requests"),body);
+}
+/* owner: event editor */
+function openEvent(e0,isNew,extra){
+  var e=Object.assign({},e0),rep=0,armed=false;
+  var label=h("input",{type:"text",value:e.label||"",placeholder:T("Student or event name"),autocomplete:"off"});
+  var date=h("input",{type:"date",value:e.date});
+  var startS=timeSelect(e.start,DAY0,DAY1-30);
+  var endS=timeSelect(Math.min(e.start+e.dur,DAY1),DAY0+30,DAY1);
+  startS.onchange=function(){var d=Math.max(30,e.dur||60);var v=Math.min(+startS.value+d,DAY1);endS.value=""+v};
+  endS.onchange=function(){e.dur=Math.max(30,+endS.value-(+startS.value))};
+  var court=h("input",{type:"text",inputmode:"numeric",value:e.court||"",placeholder:T("Court no.")});
+  var courtF=field(T("Court (One Pádel)"),court);
+  var placeBox,statusBox;
+  function sync(){courtF.hidden=!(e.place==="one"&&(e.type==="clase"||e.type==="reserva"||e.type==="pista"));placeF.hidden=!(e.type==="clase"||e.type==="reserva"||e.type==="pista");statusF.hidden=!(e.type==="clase"||e.type==="pista")}
+  var typeBox=chips(TYPES,e.type,function(v){e.type=v;sync()});
+  placeBox=chips(PLACES,e.place||"",function(v){e.place=v;sync()});
+  statusBox=chips([["aceptada",T("Time accepted")],["confirmada",T("Confirmed (court booked)")],["cancelar",T("Cancel court")]],e.status==="aceptada"||e.status==="cancelar"?e.status:"confirmada",function(v){e.status=v});
+  var placeF=field(T("Where"),placeBox),statusF=field(T("Status"),statusBox);
+  var notes=h("textarea",{rows:"2"});notes.value=e.notes||"";
+  var repS=h("select",null,[[0,T("Do not repeat")],[4,T("Weekly, 4 times")],[8,T("Weekly, 8 times")],[12,T("Weekly, 12 times")]].map(function(o){return h("option",{value:""+o[0],text:o[1]})}));
+  var del=h("button",{class:"btn dng",type:"button",onclick:function(){
+    if(!armed){armed=true;del.textContent=T("Tap again to delete");return}
+    closeSheet();toast(T("Deleted"));delEvent(e0).catch(function(){});
+  }},T("Delete"));
+  var save=h("button",{class:"btn pri grow",type:"button",onclick:function(){
+    var n=Object.assign({},e0,e,{label:label.value.trim(),date:date.value||e.date,start:+startS.value,dur:+endS.value-(+startS.value),court:e.place==="one"?court.value.trim():"",notes:notes.value.trim()});
+    if(n.dur<30){toast(T("End time must be after start time"));return}
+    if((n.type==="clase"||n.type==="pista")&&n.place!=="one")n.court="";
+    if(["clase","reserva","pista"].indexOf(n.type)<0){n.place="";n.court=""}
+    if(n.type==="pista"){n.place="one";n.label=""}
+    var reps=isNew?+repS.value:0;
+    saveEvent(n,isNew?null:e0.id).catch(function(){});
+    if(reps>1){var list=[];for(var k=1;k<reps;k++){var c=Object.assign({},n,{date:ymd(addD(pd(n.date),7*k))});delete c.id;list.push(c)}saveMany(list).catch(function(){})}
+    closeSheet();toast(T("Saved"));
+  }},T("Save"));
+  sheet(isNew?T("New event"):T("Edit event"),h("div",null,
+    field(T("Type"),typeBox),field(T("Name"),label),placeF,courtF,statusF,field(T("Date"),date),
+    h("div",{class:"row"},h("div",{class:"grow"},field(T("Start"),startS)),h("div",{class:"grow"},field(T("End"),endS))),
+    isNew?field(T("Repeat"),repS):null,field(T("Notes"),notes),
+    h("div",{class:"acts"},save,h("button",{class:"btn",type:"button",onclick:closeSheet},T("Cancel")),isNew?null:del),extra?h("div",{class:"acts"},extra):null),true);
+  sync();
+}
+
+
+/* ---------- servidor (Apps Script) ---------- */
+function api(fn){var args=[].slice.call(arguments,1);return fetch(API_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({fn:fn,args:args}),redirect:"follow"}).then(function(r){return r.json()}).then(function(d){if(!d.ok)throw new Error(d.err);return d.r})}
+function errMsg(e){return T(String((e&&e.message)||e).replace(/^Error:\s*/,""))}
+function myIds(){try{return JSON.parse(lsGet("agenda-mine","[]"))}catch(e){return []}}
+function reload(){
+  if(S.pw>0)return Promise.resolve();
+  var sc=document.querySelector(".scroller"),top=sc?sc.scrollTop:0;
+  var p=S.owner?api("getOwnerData",S.pin):api("getData");
+  return p.then(function(d){
+    S.mailErr=d.mailErr||"";S.events=d.events||[];var m={};(d.reqs||[]).forEach(function(r){m[r.id]={name:r.name||"",items:[r]}});S.reqs=m;S.loaded=true;S.fail=false;render();
+    var s2=document.querySelector(".scroller");if(s2)s2.scrollTop=top;
+  }).catch(function(e){
+    if(S.owner&&/PIN/.test(errMsg(e))){S.owner=false;S.pin="";lsSet("agenda-pin","");toast(T("Wrong PIN"));return reload()}
+    S.loaded=true;S.fail=true;render();
+  });
+}
+function bg(p){S.pw=(S.pw||0)+1;return p.then(function(r){S.pw--;return r},function(er){S.pw--;toast(errMsg(er));reload();throw er})}
+function saveEvent(e,id){
+  var rid=id||e.id||"";
+  var data={id:rid,date:e.date,start:e.start,dur:e.dur,label:e.label||"",type:e.type,place:e.place||"",court:e.court||"",status:e.status||"confirmada",notes:e.notes||"",rq:e.rq||""};
+  var loc=Object.assign({},data,{id:rid||"tmp"+uid()}),i=-1;
+  S.events.forEach(function(x,k){if(x.id===loc.id)i=k});
+  if(i>=0)S.events[i]=Object.assign({},S.events[i],loc);else S.events.push(loc);
+  render();
+  return bg(api("ownerSave",S.pin,data)).then(function(nid){if(!rid)S.events.forEach(function(x){if(x.id===loc.id)x.id=nid});if(data.type!=="pista"&&S.events.some(function(x){return x.type==="pista"&&x.date===data.date}))return reload()});
+}
+function saveMany(list){
+  var tmp=list.map(function(e){return Object.assign({},e,{id:"tmp"+uid(),label:e.label||"",court:e.court||"",notes:e.notes||"",rq:""})});
+  tmp.forEach(function(x){S.events.push(x)});render();
+  return bg(api("ownerSaveMany",S.pin,list.map(function(e){return {date:e.date,start:e.start,dur:e.dur,label:e.label||"",type:e.type,place:e.place||"",court:e.court||"",status:e.status||"confirmada",notes:e.notes||""}}))).then(function(){return reload()});
+}
+function delEvent(e){
+  S.events=S.events.filter(function(x){return x.id!==e.id});render();
+  return bg(api("ownerDelete",S.pin,e.id));
+}
+function setReqLocal(id,status){var r=S.reqs[id];if(r)(r.items||[]).forEach(function(it){it.status=status})}
+function acceptReq(it){
+  setReqLocal(it.id,"aceptada");
+  S.events.push({id:"q"+it.id,date:it.date,start:it.start,dur:it.dur,type:"clase",place:it.place||"one",court:"",label:it.name||"",status:"aceptada",notes:"",rq:it.id});
+  render();toast(T("Accepted. Book the court and mark it as confirmed."));openRequests();
+  bg(api("ownerAccept",S.pin,it.id,it.place||"one")).then(function(){return reload()}).then(function(){if(document.getElementById("layer").firstChild)openRequests()}).catch(function(){});
+}
+function rejectReq(it){
+  setReqLocal(it.id,"rechazada");render();toast(T("Rejected"));openRequests();
+  bg(api("ownerReject",S.pin,it.id)).then(function(){return reload()}).catch(function(){});
+}
+function submitRequest(item,name){
+  var req={name:name,date:item.date,start:item.start,dur:item.dur,place:item.place,note:item.note};
+  api("submitRequest",req).then(function(r){var ids=myIds();ids.push(r.id);lsSet("agenda-mine",JSON.stringify(ids.slice(-30)));closeSheet();toast(T("Request sent. I will confirm the time."));reload()}).catch(function(e){toast(errMsg(e));reload()});
+}
+function openMine(){
+  var body=h("div",null,h("div",{class:"sub",text:T("Loading…")}));sheet(T("My requests"),body);
+  var STT={pendiente:[T("Waiting for confirmation"),"wait"],aceptada:[T("Time accepted · court still to book"),"wait"],confirmada:[T("Confirmed"),"ok"],rechazada:[T("Not available"),""],cancelada:[T("Cancelled"),""]};
+  api("myRequests",myIds()).then(function(items){
+    body.textContent="";
+    items.sort(function(a,b){return (a.date+tm(a.start))<(b.date+tm(b.start))?-1:1});
+    if(!items.length)body.appendChild(h("div",{class:"sub",text:T("You have no requests.")}));
+    items.forEach(function(it){var d=pd(it.date),s=STT[it.status]||[it.status,""];
+      body.appendChild(h("div",{class:"item"},h("div",{class:"grow"},h("b",{text:DOW[(d.getDay()+6)%7]+" "+d.getDate()+" "+MONTHS[d.getMonth()].slice(0,3)+" · "+tm(it.start)+"–"+tm(it.start+it.dur)}),
+        h("div",{class:"sub",text:dur(it.dur)+(it.place?" · "+PNAME[it.place]:"")}),h("span",{class:"st "+s[1],text:s[0]})),
+        it.status==="pendiente"?h("button",{class:"btn sm dng",onclick:function(){api("cancelRequest",it.id).then(function(){toast(T("Request cancelled"));reload();openMine()})}},T("Cancel")):null))});
+    body.appendChild(h("div",{class:"acts"},h("button",{class:"btn grow",onclick:closeSheet},T("Close"))));
+  }).catch(function(e){body.textContent=errMsg(e)});
+}
+function askPin(){
+  var pin=h("input",{type:"password",placeholder:"PIN",autocomplete:"current-password"});
+  function go(){var v=pin.value.trim();if(!v)return;api("getOwnerData",v).then(function(){S.pin=v;S.owner=true;lsSet("agenda-pin",v);closeSheet();return reload()}).catch(function(){toast(T("Wrong PIN"))})}
+  sheet(T("Coach mode"),h("div",null,field("PIN",pin),h("div",{class:"acts"},h("button",{class:"btn pri grow",onclick:go},T("Enter")),h("button",{class:"btn",onclick:closeSheet},T("Cancel")))));
+}
+function logout(){S.owner=false;S.pin="";lsSet("agenda-pin","");reload()}
+function renderFoot(){var o=document.getElementById("foot");if(o)o.remove()}
+
+/* ---------- init ---------- */
+function init(){
+  var sl=lsGet("agenda-lang","");if(!sl){var nl=(navigator.language||"en").slice(0,2).toLowerCase();sl=nl==="uk"?"uk":nl==="ru"?"ru":nl==="es"?"es":"en"}
+  LANG=["es","ru","uk","en"].indexOf(sl)>=0?sl:"en";rebuildConsts();
+  S.view="week";
+  S.z=1;
+  S.pin=window.PIN_URL||lsGet("agenda-pin","");S.owner=!!S.pin;if(window.PIN_URL)lsSet("agenda-pin",window.PIN_URL);
+  render();reload().then(function(){syncNow(false)});
+  var rt;window.addEventListener("resize",function(){clearTimeout(rt);rt=setTimeout(render,150)});
+  if(window.WANT_OWNER&&!S.owner)setTimeout(askPin,400);
+  function idle(){return !document.hidden&&!document.getElementById("layer").firstChild}
+  setInterval(function(){if(idle())reload()},30000);
+  document.addEventListener("visibilitychange",function(){if(idle())reload()});
+}
+init();
+})();
+</script>
+</body></html>
