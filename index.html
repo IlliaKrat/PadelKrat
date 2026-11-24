@@ -323,6 +323,7 @@ function renderBar(){
   var r1=h("div",{class:"row"},
     h("div",{class:"grow",style:"min-width:150px"},h("div",{class:"title",text:T("Schedule"),onclick:titleTap,style:"user-select:none;-webkit-user-select:none"}),h("div",{class:"sub",text:S.owner?T("Coach view"):T("Tap a green slot and send your request")})),
     h("button",{class:"btn sm","aria-label":T("Language"),title:T("Language"),onclick:openLang},"🌐 "+LANG.toUpperCase()),
+    !S.owner&&myIds().length?h("button",{class:"btn",onclick:openMine},T("My requests"),h("span",{class:"badge",text:""+myIds().length})):null,
     S.owner?h("button",{class:"btn sm",title:T("Sync Gmail"),"aria-label":T("Sync Gmail"),onclick:function(){syncNow(true)}},"↻"):null,
     S.owner?h("button",{class:"btn",onclick:openRequests},T("Requests"),pc?h("span",{class:"badge",text:""+pc}):null):null,
     S.owner?h("button",{class:"btn sm",title:T("Exit coach mode"),onclick:logout},T("Coach mode ✕")):null);
