@@ -242,7 +242,7 @@ function dayItems(ds){
 function mine(x){
   if(S.owner)return false;
   var ids=myIds();
-  return x.k==="pend"?ids.indexOf(x.it.id)>=0:!!(x.e.rq&&ids.indexOf(x.e.rq)>=0);
+  return x.k==="pend"?(ids.indexOf(x.it.id)>=0||(S.tmp||[]).indexOf(x.it.id)>=0):!!(x.e.rq&&ids.indexOf(x.e.rq)>=0);
 }
 function freeSegs(ds){
   var today=ymd(new Date()),floor=DAY0;
@@ -267,7 +267,7 @@ function boxText(x,ht){
   var e=x.e;
   if(e.type==="pista"){
     var pn=Math.max(1,Math.floor(((ht||40)-3)/11)),pc=S.owner&&e.status==="cancelar"?T("⚠ cancel court ")+(e.court||""):T("court ")+(e.court||"")+" ✓";
-    var po=[h("b",{text:rng(e.start,e.start+e.dur)})];
+    var po=[h("b",{text:rng(x.start,x.start+x.dur)})];
     if(pn>=3){po.push(h("span",{text:T("Free")}));po.push(h("span",{text:pc}))}
     else if(pn===2)po.push(h("span",{text:T("Free")+" · "+pc}));
     return po}
@@ -429,11 +429,18 @@ function dayCol(d,H){
       onclick:function(ev){var off=ev.offsetY!=null&&ev.target===ev.currentTarget?ev.offsetY:0;var st=s[0]+Math.floor(off/H)*30;st=Math.min(st,s[1]-30);onFree(ds,Math.max(s[0],st),s[1])}},
       len>=60&&H>=10||len>=30&&H>=16?[h("b",{text:rng(s[0],s[1])}),len>=90&&H>=15?h("span",{text:T("Free · ")+dur(len)}):(len>=60&&H>=12?h("span",{text:T("Free")}):null)]:null));
   });
-  dayItems(ds).forEach(function(x){
+  var all=dayItems(ds),items=[];
+  all.forEach(function(x){
+    if(!(x.k==="ev"&&x.e.type==="pista")){items.push(x);return}
+    var parts=[[x.start,x.start+x.dur]];
+    all.forEach(function(y){if(y===x||(y.k==="ev"&&y.e.type==="pista"))return;var a=y.start,b=y.start+y.dur,np=[];
+      parts.forEach(function(q){if(b<=q[0]||a>=q[1]){np.push(q);return}if(a>q[0])np.push([q[0],a]);if(b<q[1])np.push([b,q[1]])});parts=np});
+    parts.forEach(function(q){if(q[1]-q[0]>=30)items.push({k:"ev",e:x.e,start:q[0],dur:q[1]-q[0]})});
+  });
+  items.forEach(function(x){
     if(!S.owner&&x.k==="ev"&&x.e.type==="pista"&&x.e.status==="cancelar")return;
     var top=(x.start-DAY0)/30*H,ht=x.dur/30*H;
-    var half=x.k==="ev"&&x.e.type==="pista"&&dayItems(ds).some(function(y){return y!==x&&!(y.k==="ev"&&y.e.type==="pista")&&y.start<x.start+x.dur&&y.start+y.dur>x.start});
-    col.appendChild(h("div",{class:"ev "+boxClass(x)+(half?" half":""),style:"top:"+top+"px;height:"+(ht-1)+"px",role:"button",tabindex:"0",
+    col.appendChild(h("div",{class:"ev "+boxClass(x),style:"top:"+top+"px;height:"+(ht-1)+"px",role:"button",tabindex:"0",
       onclick:function(ev){ev.stopPropagation();onEvent(x)}},boxText(x,ht-1)));
   });
   if(ds===today){var n=nowMin();if(n>=DAY0&&n<=DAY1)col.appendChild(h("div",{class:"nowline",style:"top:"+((n-DAY0)/30*H)+"px"}))}
@@ -443,7 +450,7 @@ function onFree(ds,start,end){if(S.owner)openEvent({date:ds,start:start,dur:60,t
 function onEvent(x){
   if(!S.owner&&x.k==="ev"&&x.e.type==="pista"){onFree(x.e.date,x.start,x.start+x.dur);return}
   if(S.owner&&x.k==="ev"&&x.e.type==="pista"&&x.e.status!=="cancelar"){var p=x.e;
-    openEvent({date:p.date,start:p.start,dur:Math.min(p.dur,90),type:"clase",place:"one",court:p.court,status:"confirmada"},true,
+    openEvent({date:p.date,start:x.start,dur:Math.min(x.dur,90),type:"clase",place:"one",court:p.court,status:"confirmada"},true,
       h("button",{class:"btn",type:"button",onclick:function(){closeSheet();openEvent(p,false)}},T("Court, no lesson")+" ✎"));return}
   if(S.owner){if(x.k==="pend")openRequests();else openEvent(x.e,false)}
   else if(mine(x))openMine();
@@ -698,7 +705,10 @@ function rejectReq(it){
 }
 function submitRequest(item,name){
   var req={name:name,date:item.date,start:item.start,dur:item.dur,place:item.place,note:item.note};
-  api("submitRequest",req).then(function(r){var ids=myIds();ids.push(r.id);lsSet("agenda-mine",JSON.stringify(ids.slice(-30)));closeSheet();toast(T("Request sent. I will confirm the time."));reload()}).catch(function(e){toast(errMsg(e));reload()});
+  var tmp="tmp"+uid();S.tmp=(S.tmp||[]).concat([tmp]);
+  S.reqs[tmp]={name:name,items:[{id:tmp,date:req.date,start:req.start,dur:req.dur,place:req.place||"",status:"pendiente"}]};
+  closeSheet();render();toast(T("Request sent. I will confirm the time."));
+  bg(api("submitRequest",req)).then(function(r){var ids=myIds();ids.push(r.id);lsSet("agenda-mine",JSON.stringify(ids.slice(-30)));delete S.reqs[tmp];return reload()}).catch(function(){delete S.reqs[tmp];render()});
 }
 function openMine(){
   var body=h("div",null,h("div",{class:"sub",text:T("Loading…")}));sheet(T("My requests"),body);
@@ -710,7 +720,8 @@ function openMine(){
     items.forEach(function(it){var d=pd(it.date),s=STT[it.status]||[it.status,""];
       body.appendChild(h("div",{class:"item"},h("div",{class:"grow"},h("b",{text:DOW[(d.getDay()+6)%7]+" "+d.getDate()+" "+MONTHS[d.getMonth()].slice(0,3)+" · "+tm(it.start)+"–"+tm(it.start+it.dur)}),
         h("div",{class:"sub",text:dur(it.dur)+(it.place?" · "+PNAME[it.place]:"")}),h("span",{class:"st "+s[1],text:s[0]})),
-        it.status==="pendiente"?h("button",{class:"btn sm dng",onclick:function(){api("cancelRequest",it.id).then(function(){toast(T("Request cancelled"));reload();openMine()})}},T("Cancel")):null))});
+        it.status==="pendiente"?h("button",{class:"btn sm dng",onclick:function(ev){var b=ev.currentTarget,st=b.parentNode.querySelector(".st");b.remove();if(st){st.className="st";st.textContent=T("Cancelled")}
+          setReqLocal(it.id,"cancelada");render();toast(T("Request cancelled"));bg(api("cancelRequest",it.id)).then(function(){return reload()}).catch(function(){})}},T("Cancel")):null))});
     body.appendChild(h("div",{class:"acts"},h("button",{class:"btn grow",onclick:closeSheet},T("Close"))));
   }).catch(function(e){body.textContent=errMsg(e)});
 }
