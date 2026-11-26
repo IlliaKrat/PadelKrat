@@ -252,7 +252,7 @@ function freeSegs(ds){
   var today=ymd(new Date()),floor=DAY0;
   if(ds<today)return [];
   if(ds===today)floor=Math.max(DAY0,Math.ceil(nowMin()/30)*30);
-  var busy=dayItems(ds).filter(function(x){return !(x.k==="ev"&&(x.e.type==="pista"||(S.owner&&x.e.type==="ocupado")))}).map(function(x){return [x.start,x.start+x.dur]}).sort(function(a,b){return a[0]-b[0]});
+  var busy=dayItems(ds).filter(function(x){return !(x.k==="ev"&&x.e.type==="pista")}).map(function(x){return [x.start,x.start+x.dur]}).sort(function(a,b){return a[0]-b[0]});
   var cur=floor,out=[];
   busy.forEach(function(b){if(b[0]>cur)out.push([cur,Math.min(b[0],DAY1)]);cur=Math.max(cur,b[1])});
   if(cur<DAY1)out.push([cur,DAY1]);
@@ -311,7 +311,7 @@ function boxText(x,ht){
   var out=[];
   if(n<3&&bd)out.push(h("b",{class:"nm"},h("i",{class:"t",text:name}),h("i",{class:"bd",text:bd})));
   else out.push(h("b",{text:name}));
-  if(n>=2)out.push(h("span",{class:"tr",text:rng(e.start,e.start+e.dur)}));
+  if(n>=2)out.push(h("span",{class:"tr",text:rng(x.start,x.start+x.dur)}));
   if(n>=4){if(place)out.push(h("span",{text:place}));if(cl)out.push(h("span",{text:cl}))}
   else if(n===3){var l3=cl||place;if(l3)out.push(h("span",{text:l3}))}
   return out;
