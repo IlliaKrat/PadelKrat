@@ -176,8 +176,8 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 .price{margin:10px 0 4px;font-weight:600}
 .ptab{border-collapse:collapse;font-size:12px;margin:6px 0}.ptab th,.ptab td{padding:2px 6px;text-align:right}.ptab th:first-child,.ptab td:first-child{text-align:left}
 details.pr summary{cursor:pointer;color:var(--accent);font-size:13px;margin-top:8px}
-.hd.xd{box-shadow:inset 0 -3px 0 var(--xiri)}.hd .xl{display:block;font-size:9px;line-height:1.3;font-weight:600;color:var(--xiri-ink);background:var(--xiri);border-radius:4px;padding:0 3px;margin-top:1px}
-.col.xd{background:color-mix(in srgb,var(--xiri) 12%,transparent)}.mc.xd{box-shadow:inset 0 3px 0 var(--xiri)}
+.hd .xl{display:block;font-size:8px;line-height:1.2;font-weight:600;letter-spacing:.02em;color:var(--xiri);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.col.xd{background:color-mix(in srgb,var(--xiri) 7%,transparent)}.mc.xd{box-shadow:inset 0 3px 0 var(--xiri)}
 </style>
 </head><body>
 
@@ -480,11 +480,11 @@ function dayCol(d,H){
   if(ds===today){var n=nowMin();if(n>=DAY0&&n<=DAY1)col.appendChild(h("div",{class:"nowline",style:"top:"+((n-DAY0)/30*H)+"px"}))}
   return col;
 }
-function onFree(ds,start,end){if(S.owner)openEvent({date:ds,start:start,dur:90,type:"clase",place:defPlace(ds),status:"confirmada"},true);else openRequest(ds,start)}
+function onFree(ds,start,end){if(S.owner)openEvent({date:ds,start:start,dur:90,type:"clase",place:defPlace(ds),status:"aceptada"},true);else openRequest(ds,start)}
 function onEvent(x){
   if(!S.owner&&x.k==="ev"&&x.e.type==="pista"){onFree(x.e.date,x.start,x.start+x.dur);return}
   if(S.owner&&x.k==="ev"&&x.e.type==="ocupado"){var o=x.e;
-    openEvent({date:o.date,start:x.start,dur:Math.min(x.dur,90),type:"clase",place:defPlace(o.date),status:"confirmada"},true,
+    openEvent({date:o.date,start:x.start,dur:Math.min(x.dur,90),type:"clase",place:defPlace(o.date),status:"aceptada"},true,
       h("button",{class:"btn",type:"button",onclick:function(){closeSheet();openEvent(o,false)}},T("Busy")+" ✎"));return}
   if(S.owner&&x.k==="ev"&&x.e.type==="pista"&&x.e.status!=="cancelar"){var p=x.e;
     openEvent({date:p.date,start:x.start,dur:Math.min(x.dur,90),type:"clase",place:"one",court:p.court,status:"confirmada"},true,
@@ -536,7 +536,7 @@ function monthSummary(days){
 function renderFab(){
   var old=document.getElementById("fab");if(old)old.remove();
   if(!S.owner)return;
-  document.body.appendChild(h("button",{class:"fab",id:"fab",onclick:function(){openEvent({date:ymd(S.date),start:600,dur:90,type:"clase",place:defPlace(ymd(S.date)),status:"confirmada"},true)}},T("+ New")));
+  document.body.appendChild(h("button",{class:"fab",id:"fab",onclick:function(){openEvent({date:ymd(S.date),start:600,dur:90,type:"clase",place:defPlace(ymd(S.date)),status:"aceptada"},true)}},T("+ New")));
 }
 
 /* ---------- sheets ---------- */
