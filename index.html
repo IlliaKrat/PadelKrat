@@ -59,7 +59,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .btn.sm{padding:4px 9px;font-size:13px}
 .btn[disabled]{opacity:.45;cursor:not-allowed}
 .btn:focus-visible,.seg button:focus-visible,.chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.badge{display:inline-block;min-width:18px;padding:0 5px;border-radius:9px;background:#e5484d;color:#fff;font-size:11px;font-weight:700;line-height:18px;text-align:center;margin-left:4px}
+.badge{display:inline-block;min-width:18px;padding:0 5px;border-radius:9px;background:#e5484d;color:#fff;font-size:11px;font-weight:700;line-height:18px;text-align:center;margin-left:4px}.badge.rq{background:#f5a524;color:#2a1a00}
 .legend{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
 .legend::-webkit-scrollbar{display:none}
 .lg{flex:none;display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--muted)}
@@ -295,6 +295,9 @@ function isX(ds){return (S.xdays||[]).indexOf(ds)>=0}
 function defPlace(ds){return isX(ds)?"xiri":"one"}
 function toggleX(ds){var on=!isX(ds);S.xdays=(S.xdays||[]).filter(function(d){return d!==ds});if(on)S.xdays.push(ds);render();toast(on?T("Xirivella day"):T("Normal day (One Pádel)"));bg(api("ownerSetXDay",S.pin,ds,on)).then(function(v){S.xdays=v||S.xdays;render()}).catch(function(){})}
 function future(x){var t=ymd(new Date());return x.date>t||(x.date===t&&x.start+x.dur>nowMin())}
+function seenMap(){try{return JSON.parse(lsGet("agenda-seen","{}"))||{}}catch(e){return {}}}
+function myFuture(){return (S.mineItems||[]).filter(future)}
+function myCount(){var sn=seenMap();return myFuture().filter(function(it){return ["pendiente","aceptada","confirmada"].indexOf(it.status)>=0||sn[it.id]!==it.status}).length}
 function needCourt(e){return e.place==="one"&&(e.type==="clase"||e.type==="reserva")&&!e.court&&e.status!=="aceptada"}
 function boxText(x,ht){
   if(x.k==="pend"){var t=mine(x)?T("Your request"):(S.owner?x.it.name:T("Request"));
@@ -352,15 +355,17 @@ function nav(n){
 }
 function renderBar(){
   var b=document.getElementById("bar");b.textContent="";
-  var pc=S.owner?pendingItems().filter(function(i){return i.status==="pendiente"&&future(i)}).length+S.events.filter(function(e){return e.status==="cancelar"&&future(e)}).length+overlaps().length:0;
+  var nReq=S.owner?pendingItems().filter(function(i){return i.status==="pendiente"&&future(i)}).length:0;
+  var pc=S.owner?S.events.filter(function(e){return (e.status==="cancelar"||e.status==="aceptada")&&future(e)}).length+overlaps().length:0;
+  var mc=S.owner?0:myCount();
   var myc=0;
   var views=[["day","Día"],["week","Semana"],["month","Mes"]];
   var r1=h("div",{class:"row"},
     h("div",{class:"grow",style:"min-width:150px"},h("div",{class:"title",text:T("Schedule"),onclick:titleTap,style:"user-select:none;-webkit-user-select:none"}),h("div",{class:"sub",text:S.owner?T("Coach view"):T("Tap a green slot and send your request")})),
     h("button",{class:"btn sm","aria-label":T("Language"),title:T("Language"),onclick:openLang},"🌐 "+LANG.toUpperCase()),
-    !S.owner&&myIds().length?h("button",{class:"btn",onclick:openMine},T("My requests"),h("span",{class:"badge",text:""+myIds().length})):null,
+    !S.owner&&myFuture().length?h("button",{class:"btn",onclick:openMine},T("My requests"),mc?h("span",{class:"badge",text:""+mc}):null):null,
     S.owner?h("button",{class:"btn sm",title:T("Sync Gmail"),"aria-label":T("Sync Gmail"),onclick:function(){syncNow(true)}},"↻"):null,
-    S.owner?h("button",{class:"btn",onclick:openRequests},T("Requests"),pc?h("span",{class:"badge",text:""+pc}):null):null,
+    S.owner?h("button",{class:"btn",onclick:openRequests},T("Requests"),nReq?h("span",{class:"badge rq",title:T("Requests"),text:""+nReq}):null,pc?h("span",{class:"badge",text:""+pc}):null):null,
     S.owner?h("button",{class:"btn sm",title:T("Exit coach mode"),onclick:logout},T("Coach mode ✕")):null);
   var r2=h("div",{class:"row"},
     h("button",{class:"btn",onclick:openPicker,"aria-haspopup":"dialog"},MN[S.date.getMonth()]+" ▾"),
@@ -719,7 +724,8 @@ function reload(){
   var sc=document.querySelector(".scroller"),top=sc?sc.scrollTop:0;
   var p=S.owner?api("getOwnerData",S.pin):api("getData");
   return p.then(function(d){
-    S.mailErr=d.mailErr||"";S.events=d.events||[];S.xdays=d.xdays||[];var m={};(d.reqs||[]).forEach(function(r){m[r.id]={name:r.name||"",items:[r]}});S.reqs=m;S.loaded=true;S.fail=false;render();
+    S.mailErr=d.mailErr||"";S.events=d.events||[];S.xdays=d.xdays||[];
+    if(!S.owner&&myIds().length)api("myRequests",myIds()).then(function(it){S.mineItems=it||[];renderBar()}).catch(function(){});var m={};(d.reqs||[]).forEach(function(r){m[r.id]={name:r.name||"",items:[r]}});S.reqs=m;S.loaded=true;S.fail=false;render();
     var s2=document.querySelector(".scroller");if(s2)s2.scrollTop=top;
   }).catch(function(e){
     if(S.owner&&/PIN/.test(errMsg(e))){S.owner=false;S.pin="";lsSet("agenda-pin","");toast(T("Wrong PIN"));return reload()}
@@ -768,6 +774,7 @@ function openMine(){
   var STT={pendiente:[T("Waiting for confirmation"),"wait"],aceptada:[T("Time accepted · court still to book"),"wait"],confirmada:[T("Confirmed"),"ok"],rechazada:[T("Not available"),""],cancelada:[T("Cancelled"),""]};
   api("myRequests",myIds()).then(function(items){
     body.textContent="";
+    S.mineItems=items;var sn=seenMap();items.forEach(function(it){sn[it.id]=it.status});lsSet("agenda-seen",JSON.stringify(sn));renderBar();
     items=items.filter(future);
     items.sort(function(a,b){return (a.date+tm(a.start))<(b.date+tm(b.start))?-1:1});
     if(!items.length)body.appendChild(h("div",{class:"sub",text:T("You have no requests.")}));
@@ -775,7 +782,7 @@ function openMine(){
       body.appendChild(h("div",{class:"item"},h("div",{class:"grow"},h("b",{text:DOW[(d.getDay()+6)%7]+" "+d.getDate()+" "+MONTHS[d.getMonth()].slice(0,3)+" · "+tm(it.start)+"–"+tm(it.start+it.dur)}),
         h("div",{class:"sub",text:dur(it.dur)+(it.place?" · "+PNAME[it.place]:"")}),h("span",{class:"st "+s[1],text:s[0]})),
         it.status==="pendiente"?h("button",{class:"btn sm dng",onclick:function(ev){var b=ev.currentTarget,st=b.parentNode.querySelector(".st");b.remove();if(st){st.className="st";st.textContent=T("Cancelled")}
-          setReqLocal(it.id,"cancelada");render();toast(T("Request cancelled"));bg(api("cancelRequest",it.id)).then(function(){return reload()}).catch(function(){})}},T("Cancel")):null))});
+          setReqLocal(it.id,"cancelada");var sn=seenMap();sn[it.id]="cancelada";lsSet("agenda-seen",JSON.stringify(sn));(S.mineItems||[]).forEach(function(m){if(m.id===it.id)m.status="cancelada"});render();toast(T("Request cancelled"));bg(api("cancelRequest",it.id)).then(function(){return reload()}).catch(function(){})}},T("Cancel")):null))});
     body.appendChild(h("div",{class:"acts"},h("button",{class:"btn grow",onclick:closeSheet},T("Close"))));
   }).catch(function(e){body.textContent=errMsg(e)});
 }
