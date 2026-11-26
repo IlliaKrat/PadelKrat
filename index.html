@@ -367,7 +367,7 @@ function renderBar(){
   var r1=h("div",{class:"row"},
     h("div",{class:"grow",style:"min-width:150px"},h("div",{class:"title",text:T("Schedule"),onclick:titleTap,style:"user-select:none;-webkit-user-select:none"}),h("div",{class:"sub",text:S.owner?T("Coach view"):T("Tap a green slot and send your request")})),
     h("button",{class:"btn sm","aria-label":T("Language"),title:T("Language"),onclick:openLang},"🌐 "+LANG.toUpperCase()),
-    !S.owner?h("button",{class:"btn",onclick:openMine},T("My requests"),mc?h("span",{class:"badge",text:""+mc}):null):null,
+    !S.owner&&myFuture().length?h("button",{class:"btn",onclick:openMine},T("My requests"),mc?h("span",{class:"badge",text:""+mc}):null):null,
     S.owner?h("button",{class:"btn sm",title:T("Sync Gmail"),"aria-label":T("Sync Gmail"),onclick:function(){syncNow(true)}},"↻"):null,
     S.owner?h("button",{class:"btn",onclick:openRequests},T("Requests"),nReq?h("span",{class:"badge rq",title:T("Requests"),text:""+nReq}):null,pc?h("span",{class:"badge",text:""+pc}):null):null,
     S.owner?h("button",{class:"btn sm",title:T("Exit coach mode"),onclick:logout},T("Coach mode ✕")):null);
@@ -776,11 +776,8 @@ function submitRequest(item,name){
 function openMine(){
   var body=h("div",null,h("div",{class:"sub",text:T("Loading…")}));sheet(T("My requests"),body);
   var STT={pendiente:[T("Waiting for confirmation"),"wait"],aceptada:[T("Time accepted · court still to book"),"wait"],confirmada:[T("Confirmed"),"ok"],rechazada:[T("Not available"),""],cancelada:[T("Cancelled"),""]};
-  function nameBox(){var ni=h("input",{type:"text",value:myName(),placeholder:T("Your name and surname"),autocomplete:"name"});
-    return h("div",{style:"margin-bottom:10px"},h("div",{class:"sub",text:T("Write the same name and surname I use and you will see all your lessons.")}),
-      h("div",{class:"row",style:"margin-top:6px"},h("div",{class:"grow"},ni),h("button",{class:"btn sm pri",onclick:function(){var v=ni.value.trim();S.myName=v;lsSet("agenda-name",v);openMine()}},T("Show my lessons"))))}
   api("myRequests",myIds(),myName()).then(function(items){
-    body.textContent="";body.appendChild(nameBox());
+    body.textContent="";
     var sn=seenMap();items.forEach(function(it){sn[it.id]=it.status});lsSet("agenda-seen",JSON.stringify(sn));setMine(items);
     items=items.filter(future);
     items.sort(function(a,b){return (a.date+tm(a.start))<(b.date+tm(b.start))?-1:1});
