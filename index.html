@@ -174,7 +174,7 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 .pk-c.out{opacity:.4}.pk-c.today{box-shadow:inset 0 0 0 2px var(--accent)}
 .pk-c.sel{background:var(--accent);color:var(--accent-ink)}
 .price{margin:10px 0 4px;font-weight:600}
-.ptab{border-collapse:collapse;font-size:12px;margin:6px 0}.ptab th,.ptab td{padding:2px 6px;text-align:right}.ptab th:first-child,.ptab td:first-child{text-align:left}
+.ptab{border-collapse:collapse;font-size:12px;margin:6px 0}.ptab th,.ptab td{padding:2px 6px;text-align:right}.ptab th:first-child,.ptab td:first-child{text-align:left}.ptab th:not(:first-child),.ptab td:not(:first-child){white-space:nowrap}.ptab small{font-size:.75em;margin-left:1px;opacity:.75}
 details.pr summary{cursor:pointer;color:var(--accent);font-size:13px;margin-top:8px}
 .hd .xl{display:block;font-size:8px;line-height:1.2;font-weight:600;letter-spacing:.02em;color:var(--xiri);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .col.xd{background:color-mix(in srgb,var(--xiri) 7%,transparent)}.mc.xd{box-shadow:inset 0 3px 0 var(--xiri)}
@@ -276,7 +276,7 @@ function priceTag(n,pal,p){return "["+n+(n>1?" alumnos":" alumno")+" · "+pal+(p
 var TAG_RE=/^\[(\d) alumnos? · (\d) palas?[^\]]*\]\s*/;
 function priceTable(){
   function tb(title,rows,cols){var t=h("table",{class:"ptab"},h("tr",null,[h("th",{text:title})].concat(cols.map(function(c){return h("th",{text:c})}))));
-    rows.forEach(function(r){t.appendChild(h("tr",null,[h("td",{text:r[0]})].concat(r[1].map(function(v){return h("td",{text:v+" €"})}))))});return t}
+    rows.forEach(function(r){t.appendChild(h("tr",null,[h("td",{text:r[0]})].concat(r[1].map(function(v){return h("td",null,""+v,h("small",{text:"€"}))}))))});return t}
   var P=PRICES.p90,Q=PRICES.p60,R=[[T("Day (weekdays before 17:00 and weekends)"),"dia"],[T("Crosses 17:00"),"cruza"],[T("Evening (weekdays from 17:00)"),"tarde"]];
   return h("details",{class:"pr"},h("summary",{text:T("See prices")}),
     h("div",{class:"sub",text:T("Total per lesson, court included")}),
