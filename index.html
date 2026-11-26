@@ -294,6 +294,7 @@ function groupFields(st,onCh){
 function isX(ds){return (S.xdays||[]).indexOf(ds)>=0}
 function defPlace(ds){return isX(ds)?"xiri":"one"}
 function toggleX(ds){var on=!isX(ds);S.xdays=(S.xdays||[]).filter(function(d){return d!==ds});if(on)S.xdays.push(ds);render();toast(on?T("Xirivella day"):T("Normal day (One Pádel)"));bg(api("ownerSetXDay",S.pin,ds,on)).then(function(v){S.xdays=v||S.xdays;render()}).catch(function(){})}
+function future(x){var t=ymd(new Date());return x.date>t||(x.date===t&&x.start+x.dur>nowMin())}
 function needCourt(e){return e.place==="one"&&(e.type==="clase"||e.type==="reserva")&&!e.court&&e.status!=="aceptada"}
 function boxText(x,ht){
   if(x.k==="pend"){var t=mine(x)?T("Your request"):(S.owner?x.it.name:T("Request"));
@@ -351,7 +352,7 @@ function nav(n){
 }
 function renderBar(){
   var b=document.getElementById("bar");b.textContent="";
-  var pc=S.owner?pendingItems().filter(function(i){return i.status==="pendiente"}).length+S.events.filter(function(e){return e.status==="cancelar"&&e.date>=ymd(new Date())}).length+overlaps().length:0;
+  var pc=S.owner?pendingItems().filter(function(i){return i.status==="pendiente"&&future(i)}).length+S.events.filter(function(e){return e.status==="cancelar"&&future(e)}).length+overlaps().length:0;
   var myc=0;
   var views=[["day","Día"],["week","Semana"],["month","Mes"]];
   var r1=h("div",{class:"row"},
@@ -613,7 +614,7 @@ function syncNow(manual){
 /* owner: requests */
 function openRequests(){
   var body=h("div");
-  var pend=pendingItems().filter(function(i){return i.status==="pendiente"}).sort(function(a,b){return (a.date+tm(a.start))<(b.date+tm(b.start))?-1:1});
+  var pend=pendingItems().filter(function(i){return i.status==="pendiente"&&future(i)}).sort(function(a,b){return (a.date+tm(a.start))<(b.date+tm(b.start))?-1:1});
   body.appendChild(h("h3",{text:T("To accept (")+pend.length+")"}));
   if(!pend.length)body.appendChild(h("div",{class:"sub",text:T("No pending requests.")}));
   pend.forEach(function(it){
@@ -626,7 +627,7 @@ function openRequests(){
         h("button",{class:"btn sm dng",onclick:function(){rejectReq(it)}},T("Reject")))));
   });
   var today=ymd(new Date());
-  var wait=S.events.filter(function(e){return e.status==="aceptada"&&e.date>=today}).sort(function(a,b){return (a.date+tm(a.start))<(b.date+tm(b.start))?-1:1});
+  var wait=S.events.filter(function(e){return e.status==="aceptada"&&future(e)}).sort(function(a,b){return (a.date+tm(a.start))<(b.date+tm(b.start))?-1:1});
   body.appendChild(h("h3",{style:"margin-top:16px",text:T("Court still to book (")+wait.length+")"}));
   if(!wait.length)body.appendChild(h("div",{class:"sub",text:T("No courts to book.")}));
   wait.forEach(function(e){
@@ -636,7 +637,7 @@ function openRequests(){
       e.place==="one"?court:null,
       h("button",{class:"btn sm pri",onclick:function(){var n=Object.assign({},e,{status:"confirmada",court:court.value.trim()||e.court||""});saveEvent(n).catch(function(){});toast(T("Court confirmed"));openRequests()}},T("Court booked ✓"))));
   });
-  var canc=S.events.filter(function(e){return e.status==="cancelar"&&e.date>=today}).sort(function(a,b){return (a.date+tm(a.start))<(b.date+tm(b.start))?-1:1});
+  var canc=S.events.filter(function(e){return e.status==="cancelar"&&future(e)}).sort(function(a,b){return (a.date+tm(a.start))<(b.date+tm(b.start))?-1:1});
   body.appendChild(h("h3",{style:"margin-top:16px",text:T("Courts to cancel (")+canc.length+")"}));
   if(!canc.length)body.appendChild(h("div",{class:"sub",text:T("None. Choose “Cancel court” when editing a lesson or court.")}));
   canc.forEach(function(e){
@@ -767,6 +768,7 @@ function openMine(){
   var STT={pendiente:[T("Waiting for confirmation"),"wait"],aceptada:[T("Time accepted · court still to book"),"wait"],confirmada:[T("Confirmed"),"ok"],rechazada:[T("Not available"),""],cancelada:[T("Cancelled"),""]};
   api("myRequests",myIds()).then(function(items){
     body.textContent="";
+    items=items.filter(future);
     items.sort(function(a,b){return (a.date+tm(a.start))<(b.date+tm(b.start))?-1:1});
     if(!items.length)body.appendChild(h("div",{class:"sub",text:T("You have no requests.")}));
     items.forEach(function(it){var d=pd(it.date),s=STT[it.status]||[it.status,""];
