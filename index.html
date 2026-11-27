@@ -266,7 +266,7 @@ function boxClass(x){
   if(x.k==="pend")return mine(x)?"pend mine":"pend";
   var e=x.e;
   var c=e.type==="clase"||e.type==="reserva"?(e.place||"ocupado"):e.type==="pista"?"pistaok":e.type;
-  return c+(S.owner&&e.status==="cancelar"?" canc":"")+((e.status==="aceptada"||(S.owner&&needCourt(e)))?" acc":"")+(mine(x)?" mine":"");
+  return c+(S.owner&&e.status==="cancelar"?" canc":"")+((accE(e)||(S.owner&&needCourt(e)))?" acc":"")+(mine(x)?" mine":"");
 }
 /* ---------- precios (editar aquí) ---------- */
 var PRICES={p90:{dia:[55,60,60,64],cruza:[60,65,65,69],tarde:[65,70,70,74]},p60:{dia:[40,40],cruza:[45,45],tarde:[50,50]},palas:[0,0,3,5,5],tarde:1020};
@@ -302,6 +302,7 @@ function myEvIds(){return (S.mineItems||[]).filter(function(it){return it.ev}).m
 function setMine(items){var old=myEvIds().join();S.mineItems=items||[];if(old!==myEvIds().join()){var sc=document.querySelector(".scroller"),t=sc?sc.scrollTop:0;render();var s2=document.querySelector(".scroller");if(s2)s2.scrollTop=t}else renderBar()}
 function myFuture(){return (S.mineItems||[]).filter(future)}
 function myCount(){var sn=seenMap();return myFuture().filter(function(it){return ["pendiente","aceptada","confirmada"].indexOf(it.status)>=0||sn[it.id]!==it.status}).length}
+function accE(e){return e.status==="aceptada"&&(e.type==="clase"||e.type==="reserva")}
 function needCourt(e){return e.place==="one"&&(e.type==="clase"||e.type==="reserva")&&!e.court&&e.status!=="aceptada"}
 function boxText(x,ht){
   if(x.k==="pend"){var t=mine(x)?T("Your request"):(S.owner?x.it.name:T("Request"));
@@ -319,7 +320,7 @@ function boxText(x,ht){
   var cl="",bd="";
   var short=function(c){c=String(c);return c.length>4?c.slice(0,3):c};
   if(S.owner&&e.status==="cancelar"){cl=T("⚠ cancel");bd="⚠"}
-  else if(e.status==="aceptada"){cl=S.owner?T("⚠ book"):T("Pending");bd=S.owner?"⚠":"?"}
+  else if(accE(e)){cl=S.owner?T("⚠ book"):T("Pending");bd=S.owner?"⚠":"?"}
   else if(S.owner&&needCourt(e)){cl=T("⚠ no no.");bd="⚠"}
   else if(e.place==="one"&&e.court){cl=T("court ")+e.court+(e.type==="clase"||e.type==="reserva"?" ✓":"");bd="#"+short(e.court)}
   var out=[];
@@ -360,7 +361,7 @@ function nav(n){
 function renderBar(){
   var b=document.getElementById("bar");b.textContent="";
   var nReq=S.owner?pendingItems().filter(function(i){return i.status==="pendiente"&&future(i)}).length:0;
-  var pc=S.owner?S.events.filter(function(e){return (e.status==="cancelar"||e.status==="aceptada")&&future(e)}).length+overlaps().length:0;
+  var pc=S.owner?S.events.filter(function(e){return (e.status==="cancelar"||accE(e))&&future(e)}).length+overlaps().length:0;
   var mc=S.owner?0:myCount();
   var myc=0;
   var views=[["day","Día"],["week","Semana"],["month","Mes"]];
@@ -636,7 +637,7 @@ function openRequests(){
         h("button",{class:"btn sm dng",onclick:function(){rejectReq(it)}},T("Reject")))));
   });
   var today=ymd(new Date());
-  var wait=S.events.filter(function(e){return e.status==="aceptada"&&future(e)}).sort(function(a,b){return (a.date+tm(a.start))<(b.date+tm(b.start))?-1:1});
+  var wait=S.events.filter(function(e){return accE(e)&&future(e)}).sort(function(a,b){return (a.date+tm(a.start))<(b.date+tm(b.start))?-1:1});
   body.appendChild(h("h3",{style:"margin-top:16px",text:T("Court still to book (")+wait.length+")"}));
   if(!wait.length)body.appendChild(h("div",{class:"sub",text:T("No courts to book.")}));
   wait.forEach(function(e){
@@ -703,7 +704,7 @@ function openEvent(e0,isNew,extra){
     if(n.type==="clase"&&gs.touched)n.notes=[priceTag(gs.n,gs.pal,calcPrice(n.date,n.start,n.dur,gs.n,gs.pal)),n.notes].filter(Boolean).join(" ");
     else if(tagM&&n.type==="clase")n.notes=[tagM[0].trim(),n.notes].filter(Boolean).join(" ");
     if((n.type==="clase"||n.type==="pista")&&n.place!=="one")n.court="";
-    if(["clase","reserva","pista"].indexOf(n.type)<0){n.place="";n.court=""}
+    if(["clase","reserva","pista"].indexOf(n.type)<0){n.place="";n.court="";n.status="confirmada"}
     if(n.type==="pista"){n.place="one";n.label=""}
     var reps=isNew?+repS.value:0;
     saveEvent(n,isNew?null:e0.id).catch(function(){});
