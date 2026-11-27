@@ -451,7 +451,7 @@ function renderGrid(){
   sc.addEventListener("touchend",function(e){
     if(!sw||!e.changedTouches.length){sw=null;return}
     var dx=e.changedTouches[0].clientX-sw.x,dy=e.changedTouches[0].clientY-sw.y,dt=Date.now()-sw.t;sw=null;
-    if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.6&&dt<700){S.anim=dx<0?"l":"r";nav(dx<0?1:-1)}
+    if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.6&&dt<700){window.__lastNav=Date.now();S.anim=dx<0?"l":"r";nav(dx<0?1:-1)}
   });
   sc.addEventListener("wheel",function(e){if(e.ctrlKey){e.preventDefault();zoom(e.deltaY<0?.2:-.2)}},{passive:false});
   setTimeout(function(){var el=document.querySelector(".scroller");if(el&&!el.dataset.sc){el.dataset.sc="1";var t=(Math.max(DAY0,Math.min(nowMin()-60,DAY1-300))-DAY0)/30*H;if(S.z>1&&dates.some(function(d){return ymd(d)===today}))el.scrollTop=t}},0);
@@ -813,6 +813,19 @@ function init(){
   setInterval(function(){if(idle())reload()},30000);
   document.addEventListener("visibilitychange",function(){if(idle())reload()});
 }
+/* Telegram: el gesto de deslizar a la derecha es «atrás» y cerraba la vista previa.
+   Dejamos siempre una entrada de historial de reserva: ese «atrás» pasa a ser «semana anterior». */
+(function(){
+  var tg=!!(window.TelegramWebviewProxy||window.Telegram||/Telegram/i.test(navigator.userAgent));
+  if(!tg||!window.history||!history.pushState)return;
+  try{history.replaceState({pk:0},"");history.pushState({pk:1},"")}catch(e){return}
+  window.addEventListener("popstate",function(){
+    try{history.pushState({pk:1},"")}catch(e){}
+    if(document.getElementById("layer").firstChild){closeSheet();return}
+    if(Date.now()-(window.__lastNav||0)<800)return; // ya lo movió el deslizamiento de la página
+    S.anim="r";nav(-1);
+  });
+})();
 init();
 })();
 </script>
